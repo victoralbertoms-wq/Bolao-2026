@@ -10,51 +10,45 @@
     input,select,button{font-family:inherit;font-size:14px}
     input,select{width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:8px;background:#fff;color:#111;margin-bottom:8px}
     button{cursor:pointer;border:none;border-radius:8px;padding:8px 18px;font-weight:500}
-    .btn-p{background:#1a5c2e;color:#fff}
-    .btn-p:hover{background:#145223}
-    .btn-s{background:#e5e7eb;color:#111}
-    .btn-s:hover{background:#d1d5db}
+    .btn-p{background:#1a5c2e;color:#fff}.btn-p:hover{background:#145223}
+    .btn-s{background:#e5e7eb;color:#111}.btn-s:hover{background:#d1d5db}
     .card{background:#fff;border-radius:12px;padding:1.25rem;border:1px solid #e5e7eb}
     .toast{position:fixed;bottom:24px;right:24px;padding:10px 18px;border-radius:10px;color:#fff;font-weight:500;font-size:14px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,.15)}
-    nav{background:#fff;border-bottom:1px solid #e5e7eb;padding:0 1rem;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100}
+    nav{background:#fff;border-bottom:1px solid #e5e7eb;padding:0 1rem;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:4px}
     .nav-btn{background:transparent;border:none;padding:6px 10px;font-size:13px;color:#555;border-radius:8px}
     .nav-btn.active{background:#f3f4f6;color:#111;font-weight:500}
     main{max-width:900px;margin:0 auto;padding:1.5rem 1rem}
     .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
     .grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:1.5rem}
     .stat-box{background:#f0fdf4;border-radius:10px;padding:1rem;text-align:center}
-    .stat-box .val{font-size:26px;font-weight:500}
-    .stat-box .lbl{font-size:12px;color:#555;margin-top:4px}
+    .stat-box .val{font-size:26px;font-weight:500}.stat-box .lbl{font-size:12px;color:#555;margin-top:4px}
     .tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:500}
-    .tag-green{background:#dcfce7;color:#166534}
-    .tag-blue{background:#dbeafe;color:#1d4ed8}
-    .tag-orange{background:#ffedd5;color:#c2410c}
-    .tag-gray{background:#f3f4f6;color:#555}
+    .tag-green{background:#dcfce7;color:#166534}.tag-blue{background:#dbeafe;color:#1d4ed8}
+    .tag-orange{background:#ffedd5;color:#c2410c}.tag-gray{background:#f3f4f6;color:#555}
     .rank-row{display:grid;grid-template-columns:36px 1fr 54px 54px 54px;gap:6px;align-items:center;padding:8px 10px;border-radius:8px;margin-bottom:2px}
-    .grupo-btn{padding:4px 10px;border-radius:8px;font-size:12px;border:none;cursor:pointer}
+    .grupo-btn{padding:4px 10px;border-radius:8px;font-size:12px;border:none;cursor:pointer;margin-bottom:4px}
     .jogo-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:1rem;margin-bottom:10px}
     .jogo-times{display:flex;align-items:center;gap:8px;justify-content:center;margin:.75rem 0}
-    .gol-input{width:48px;text-align:center;font-size:20px;font-weight:500;padding:4px;border-radius:8px;border:1px solid #d1d5db}
+    .gol-input{width:52px;text-align:center;font-size:20px;font-weight:500;padding:4px;border-radius:8px;border:1px solid #d1d5db;margin-bottom:0}
     .av{border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:500;color:#fff;flex-shrink:0}
     #loading{position:fixed;inset:0;background:#f3f4f6;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;z-index:9999}
     .spinner{width:36px;height:36px;border:3px solid #d1d5db;border-top-color:#1a5c2e;border-radius:50%;animation:spin .8s linear infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
+    .import-box{background:#f0fdf4;border:1px solid #86efac;border-radius:12px;padding:1rem;margin-bottom:1rem}
+    .mono{font-family:monospace;font-size:12px;background:#f3f4f6;padding:8px 10px;border-radius:8px;color:#555;margin-bottom:10px;white-space:pre}
   </style>
 </head>
 <body>
-
 <div id="loading">
   <div style="font-size:44px">🏆</div>
   <div class="spinner"></div>
   <p style="font-size:14px;color:#555">Carregando bolão...</p>
 </div>
-
 <div id="app" style="display:none"></div>
 
-<!-- Firebase -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, set, get, onValue, push, update }
+import { getDatabase, ref, set, get, onValue, update }
   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfig = {
@@ -66,78 +60,116 @@ const firebaseConfig = {
   messagingSenderId: "881858825480",
   appId: "1:881858825480:web:42accf5c8b37b2559430bd"
 };
+const fbApp = initializeApp(firebaseConfig);
+const db = getDatabase(fbApp);
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+// ── 72 JOGOS REAIS ────────────────────────────────────────────
+const JOGOS_BASE = [
+  {id:1,data:"11/06",hora:"16h00",rodada:"1ª Rodada",grupo:"A",time1:"México",time2:"África do Sul",estadio:"Estádio Azteca – Cidade do México"},
+  {id:2,data:"11/06",hora:"23h00",rodada:"1ª Rodada",grupo:"A",time1:"Coreia do Sul",time2:"República Tcheca",estadio:"Estádio Akron – Guadalajara"},
+  {id:3,data:"12/06",hora:"16h00",rodada:"1ª Rodada",grupo:"B",time1:"Canadá",time2:"Bósnia e Herzegovina",estadio:"BMO Field – Toronto"},
+  {id:4,data:"12/06",hora:"22h00",rodada:"1ª Rodada",grupo:"D",time1:"Estados Unidos",time2:"Paraguai",estadio:"SoFi Stadium – Los Angeles"},
+  {id:5,data:"13/06",hora:"01h00",rodada:"1ª Rodada",grupo:"D",time1:"Austrália",time2:"Turquia",estadio:"BC Place – Vancouver"},
+  {id:6,data:"13/06",hora:"16h00",rodada:"1ª Rodada",grupo:"B",time1:"Catar",time2:"Suíça",estadio:"Levi's Stadium – San Francisco"},
+  {id:7,data:"13/06",hora:"19h00",rodada:"1ª Rodada",grupo:"C",time1:"Brasil",time2:"Marrocos",estadio:"MetLife Stadium – Nova York/NJ"},
+  {id:8,data:"13/06",hora:"22h00",rodada:"1ª Rodada",grupo:"C",time1:"Haiti",time2:"Escócia",estadio:"Gillette Stadium – Boston"},
+  {id:9,data:"14/06",hora:"14h00",rodada:"1ª Rodada",grupo:"E",time1:"Alemanha",time2:"Curaçao",estadio:"NRG Stadium – Houston"},
+  {id:10,data:"14/06",hora:"17h00",rodada:"1ª Rodada",grupo:"F",time1:"Holanda",time2:"Japão",estadio:"AT&T Stadium – Dallas"},
+  {id:11,data:"14/06",hora:"20h00",rodada:"1ª Rodada",grupo:"E",time1:"Costa do Marfim",time2:"Equador",estadio:"Lincoln Financial Field – Filadélfia"},
+  {id:12,data:"14/06",hora:"23h00",rodada:"1ª Rodada",grupo:"F",time1:"Suécia",time2:"Tunísia",estadio:"Estadio BBVA – Monterrey"},
+  {id:13,data:"15/06",hora:"13h00",rodada:"1ª Rodada",grupo:"H",time1:"Espanha",time2:"Cabo Verde",estadio:"Mercedes-Benz Stadium – Atlanta"},
+  {id:14,data:"15/06",hora:"16h00",rodada:"1ª Rodada",grupo:"G",time1:"Bélgica",time2:"Egito",estadio:"Lumen Field – Seattle"},
+  {id:15,data:"15/06",hora:"19h00",rodada:"1ª Rodada",grupo:"H",time1:"Arábia Saudita",time2:"Uruguai",estadio:"Hard Rock Stadium – Miami"},
+  {id:16,data:"15/06",hora:"22h00",rodada:"1ª Rodada",grupo:"G",time1:"Irã",time2:"Nova Zelândia",estadio:"SoFi Stadium – Los Angeles"},
+  {id:17,data:"16/06",hora:"14h00",rodada:"1ª Rodada",grupo:"J",time1:"Argentina",time2:"Argélia",estadio:"Arrowhead Stadium – Kansas City"},
+  {id:18,data:"16/06",hora:"16h00",rodada:"1ª Rodada",grupo:"I",time1:"França",time2:"Senegal",estadio:"MetLife Stadium – Nova York/NJ"},
+  {id:19,data:"16/06",hora:"19h00",rodada:"1ª Rodada",grupo:"I",time1:"Iraque",time2:"Noruega",estadio:"Gillette Stadium – Boston"},
+  {id:20,data:"17/06",hora:"01h00",rodada:"1ª Rodada",grupo:"J",time1:"Áustria",time2:"Jordânia",estadio:"Levi's Stadium – San Francisco"},
+  {id:21,data:"17/06",hora:"14h00",rodada:"1ª Rodada",grupo:"K",time1:"Portugal",time2:"RD Congo",estadio:"NRG Stadium – Houston"},
+  {id:22,data:"17/06",hora:"17h00",rodada:"1ª Rodada",grupo:"L",time1:"Inglaterra",time2:"Croácia",estadio:"AT&T Stadium – Dallas"},
+  {id:23,data:"17/06",hora:"20h00",rodada:"1ª Rodada",grupo:"L",time1:"Gana",time2:"Panamá",estadio:"BMO Field – Toronto"},
+  {id:24,data:"17/06",hora:"23h00",rodada:"1ª Rodada",grupo:"K",time1:"Uzbequistão",time2:"Colômbia",estadio:"Estádio Azteca – Cidade do México"},
+  {id:25,data:"18/06",hora:"13h00",rodada:"2ª Rodada",grupo:"A",time1:"República Tcheca",time2:"África do Sul",estadio:"Mercedes-Benz Stadium – Atlanta"},
+  {id:26,data:"18/06",hora:"16h00",rodada:"2ª Rodada",grupo:"B",time1:"Suíça",time2:"Bósnia e Herzegovina",estadio:"SoFi Stadium – Los Angeles"},
+  {id:27,data:"18/06",hora:"19h00",rodada:"2ª Rodada",grupo:"B",time1:"Canadá",time2:"Catar",estadio:"BC Place – Vancouver"},
+  {id:28,data:"18/06",hora:"22h00",rodada:"2ª Rodada",grupo:"A",time1:"México",time2:"Coreia do Sul",estadio:"Estádio Akron – Guadalajara"},
+  {id:29,data:"19/06",hora:"01h00",rodada:"2ª Rodada",grupo:"D",time1:"Turquia",time2:"Paraguai",estadio:"Levi's Stadium – San Francisco"},
+  {id:30,data:"19/06",hora:"16h00",rodada:"2ª Rodada",grupo:"D",time1:"Estados Unidos",time2:"Austrália",estadio:"Lumen Field – Seattle"},
+  {id:31,data:"19/06",hora:"19h00",rodada:"2ª Rodada",grupo:"C",time1:"Escócia",time2:"Marrocos",estadio:"Gillette Stadium – Boston"},
+  {id:32,data:"19/06",hora:"22h00",rodada:"2ª Rodada",grupo:"C",time1:"Brasil",time2:"Haiti",estadio:"Lincoln Financial Field – Filadélfia"},
+  {id:33,data:"20/06",hora:"14h00",rodada:"2ª Rodada",grupo:"F",time1:"Holanda",time2:"Suécia",estadio:"NRG Stadium – Houston"},
+  {id:34,data:"20/06",hora:"17h00",rodada:"2ª Rodada",grupo:"E",time1:"Alemanha",time2:"Costa do Marfim",estadio:"BMO Field – Toronto"},
+  {id:35,data:"20/06",hora:"21h00",rodada:"2ª Rodada",grupo:"E",time1:"Equador",time2:"Curaçao",estadio:"Arrowhead Stadium – Kansas City"},
+  {id:36,data:"21/06",hora:"01h00",rodada:"2ª Rodada",grupo:"F",time1:"Tunísia",time2:"Japão",estadio:"Estadio BBVA – Monterrey"},
+  {id:37,data:"21/06",hora:"13h00",rodada:"2ª Rodada",grupo:"H",time1:"Espanha",time2:"Arábia Saudita",estadio:"Mercedes-Benz Stadium – Atlanta"},
+  {id:38,data:"21/06",hora:"16h00",rodada:"2ª Rodada",grupo:"G",time1:"Bélgica",time2:"Irã",estadio:"SoFi Stadium – Los Angeles"},
+  {id:39,data:"21/06",hora:"19h00",rodada:"2ª Rodada",grupo:"H",time1:"Uruguai",time2:"Cabo Verde",estadio:"Hard Rock Stadium – Miami"},
+  {id:40,data:"21/06",hora:"22h00",rodada:"2ª Rodada",grupo:"G",time1:"Nova Zelândia",time2:"Egito",estadio:"BC Place – Vancouver"},
+  {id:41,data:"22/06",hora:"14h00",rodada:"2ª Rodada",grupo:"J",time1:"Argentina",time2:"Áustria",estadio:"AT&T Stadium – Dallas"},
+  {id:42,data:"22/06",hora:"18h00",rodada:"2ª Rodada",grupo:"I",time1:"França",time2:"Iraque",estadio:"Lincoln Financial Field – Filadélfia"},
+  {id:43,data:"22/06",hora:"21h00",rodada:"2ª Rodada",grupo:"I",time1:"Noruega",time2:"Senegal",estadio:"MetLife Stadium – Nova York/NJ"},
+  {id:44,data:"23/06",hora:"00h00",rodada:"2ª Rodada",grupo:"J",time1:"Jordânia",time2:"Argélia",estadio:"Levi's Stadium – San Francisco"},
+  {id:45,data:"23/06",hora:"14h00",rodada:"2ª Rodada",grupo:"K",time1:"Portugal",time2:"Uzbequistão",estadio:"NRG Stadium – Houston"},
+  {id:46,data:"23/06",hora:"17h00",rodada:"2ª Rodada",grupo:"L",time1:"Inglaterra",time2:"Gana",estadio:"Gillette Stadium – Boston"},
+  {id:47,data:"23/06",hora:"20h00",rodada:"2ª Rodada",grupo:"L",time1:"Panamá",time2:"Croácia",estadio:"BMO Field – Toronto"},
+  {id:48,data:"23/06",hora:"23h00",rodada:"2ª Rodada",grupo:"K",time1:"Colômbia",time2:"RD Congo",estadio:"Estádio Akron – Guadalajara"},
+  {id:49,data:"24/06",hora:"16h00",rodada:"3ª Rodada",grupo:"B",time1:"Suíça",time2:"Canadá",estadio:"BC Place – Vancouver"},
+  {id:50,data:"24/06",hora:"16h00",rodada:"3ª Rodada",grupo:"B",time1:"Bósnia e Herzegovina",time2:"Catar",estadio:"Lumen Field – Seattle"},
+  {id:51,data:"24/06",hora:"19h00",rodada:"3ª Rodada",grupo:"C",time1:"Escócia",time2:"Brasil",estadio:"Hard Rock Stadium – Miami"},
+  {id:52,data:"24/06",hora:"19h00",rodada:"3ª Rodada",grupo:"C",time1:"Marrocos",time2:"Haiti",estadio:"Mercedes-Benz Stadium – Atlanta"},
+  {id:53,data:"24/06",hora:"22h00",rodada:"3ª Rodada",grupo:"A",time1:"República Tcheca",time2:"México",estadio:"Estádio Azteca – Cidade do México"},
+  {id:54,data:"24/06",hora:"22h00",rodada:"3ª Rodada",grupo:"A",time1:"África do Sul",time2:"Coreia do Sul",estadio:"Estadio BBVA – Monterrey"},
+  {id:55,data:"25/06",hora:"17h00",rodada:"3ª Rodada",grupo:"E",time1:"Equador",time2:"Alemanha",estadio:"MetLife Stadium – Nova York/NJ"},
+  {id:56,data:"25/06",hora:"17h00",rodada:"3ª Rodada",grupo:"E",time1:"Curaçao",time2:"Costa do Marfim",estadio:"Lincoln Financial Field – Filadélfia"},
+  {id:57,data:"25/06",hora:"20h00",rodada:"3ª Rodada",grupo:"F",time1:"Japão",time2:"Suécia",estadio:"AT&T Stadium – Dallas"},
+  {id:58,data:"25/06",hora:"20h00",rodada:"3ª Rodada",grupo:"F",time1:"Tunísia",time2:"Holanda",estadio:"Arrowhead Stadium – Kansas City"},
+  {id:59,data:"25/06",hora:"23h00",rodada:"3ª Rodada",grupo:"D",time1:"Turquia",time2:"Estados Unidos",estadio:"SoFi Stadium – Los Angeles"},
+  {id:60,data:"25/06",hora:"23h00",rodada:"3ª Rodada",grupo:"D",time1:"Paraguai",time2:"Austrália",estadio:"Levi's Stadium – San Francisco"},
+  {id:61,data:"26/06",hora:"16h00",rodada:"3ª Rodada",grupo:"I",time1:"Noruega",time2:"França",estadio:"Gillette Stadium – Boston"},
+  {id:62,data:"26/06",hora:"16h00",rodada:"3ª Rodada",grupo:"I",time1:"Senegal",time2:"Iraque",estadio:"BMO Field – Toronto"},
+  {id:63,data:"26/06",hora:"21h00",rodada:"3ª Rodada",grupo:"H",time1:"Cabo Verde",time2:"Arábia Saudita",estadio:"NRG Stadium – Houston"},
+  {id:64,data:"26/06",hora:"21h00",rodada:"3ª Rodada",grupo:"H",time1:"Uruguai",time2:"Espanha",estadio:"Estádio Akron – Guadalajara"},
+  {id:65,data:"27/06",hora:"00h00",rodada:"3ª Rodada",grupo:"G",time1:"Egito",time2:"Irã",estadio:"Lumen Field – Seattle"},
+  {id:66,data:"27/06",hora:"00h00",rodada:"3ª Rodada",grupo:"G",time1:"Nova Zelândia",time2:"Bélgica",estadio:"BC Place – Vancouver"},
+  {id:67,data:"27/06",hora:"18h00",rodada:"3ª Rodada",grupo:"L",time1:"Panamá",time2:"Inglaterra",estadio:"MetLife Stadium – Nova York/NJ"},
+  {id:68,data:"27/06",hora:"18h00",rodada:"3ª Rodada",grupo:"L",time1:"Croácia",time2:"Gana",estadio:"Lincoln Financial Field – Filadélfia"},
+  {id:69,data:"27/06",hora:"20h30",rodada:"3ª Rodada",grupo:"K",time1:"Colômbia",time2:"Portugal",estadio:"Hard Rock Stadium – Miami"},
+  {id:70,data:"27/06",hora:"20h30",rodada:"3ª Rodada",grupo:"K",time1:"RD Congo",time2:"Uzbequistão",estadio:"Mercedes-Benz Stadium – Atlanta"},
+  {id:71,data:"27/06",hora:"23h00",rodada:"3ª Rodada",grupo:"J",time1:"Argélia",time2:"Áustria",estadio:"Arrowhead Stadium – Kansas City"},
+  {id:72,data:"27/06",hora:"23h00",rodada:"3ª Rodada",grupo:"J",time1:"Jordânia",time2:"Argentina",estadio:"AT&T Stadium – Dallas"},
+].map(j=>({...j,gols1:null,gols2:null,status:"pendente"}));
 
-// ── DADOS ──────────────────────────────────────────────────────
-const GRUPOS = {
-  A:["Estados Unidos","Panamá","Honduras","Marrocos"],
-  B:["Argentina","Chile","Peru","Austrália"],
-  C:["México","Jamaica","Venezuela","Nova Zelândia"],
-  D:["Canadá","Uruguai","Rep. Checa","Albânia"],
-  E:["Alemanha","Escócia","Hungria","Coreia do Sul"],
-  F:["Bélgica","Turquia","Eslováquia","Egito"],
-  G:["Brasil","Colômbia","Suíça","Camarões"],
-  H:["França","Portugal","Bósnia-Herz.","Irã"],
-  I:["Espanha","Croácia","Nigéria","Tailândia"],
-  J:["Inglaterra","Holanda","Senegal","Arábia Saudita"],
-  K:["Japão","Sérvia","Costa do Marfim","Rep. Dominicana"],
-  L:["Ucrânia","Áustria","Costa Rica","Gana"],
-};
+const GRUPOS = [...new Set(JOGOS_BASE.map(j=>j.grupo))].sort();
+
 const FLAGS = {
-  "Estados Unidos":"🇺🇸","Panamá":"🇵🇦","Honduras":"🇭🇳","Marrocos":"🇲🇦",
-  "Argentina":"🇦🇷","Chile":"🇨🇱","Peru":"🇵🇪","Austrália":"🇦🇺",
-  "México":"🇲🇽","Jamaica":"🇯🇲","Venezuela":"🇻🇪","Nova Zelândia":"🇳🇿",
-  "Canadá":"🇨🇦","Uruguai":"🇺🇾","Rep. Checa":"🇨🇿","Albânia":"🇦🇱",
-  "Alemanha":"🇩🇪","Escócia":"🏴󠁧󠁢󠁳󠁣󠁴󠁿","Hungria":"🇭🇺","Coreia do Sul":"🇰🇷",
-  "Bélgica":"🇧🇪","Turquia":"🇹🇷","Eslováquia":"🇸🇰","Egito":"🇪🇬",
-  "Brasil":"🇧🇷","Colômbia":"🇨🇴","Suíça":"🇨🇭","Camarões":"🇨🇲",
-  "França":"🇫🇷","Portugal":"🇵🇹","Bósnia-Herz.":"🇧🇦","Irã":"🇮🇷",
-  "Espanha":"🇪🇸","Croácia":"🇭🇷","Nigéria":"🇳🇬","Tailândia":"🇹🇭",
-  "Inglaterra":"🏴󠁧󠁢󠁥󠁮󠁧󠁿","Holanda":"🇳🇱","Senegal":"🇸🇳","Arábia Saudita":"🇸🇦",
-  "Japão":"🇯🇵","Sérvia":"🇷🇸","Costa do Marfim":"🇨🇮","Rep. Dominicana":"🇩🇴",
-  "Ucrânia":"🇺🇦","Áustria":"🇦🇹","Costa Rica":"🇨🇷","Gana":"🇬🇭",
+  "México":"🇲🇽","África do Sul":"🇿🇦","Coreia do Sul":"🇰🇷","República Tcheca":"🇨🇿",
+  "Canadá":"🇨🇦","Bósnia e Herzegovina":"🇧🇦","Estados Unidos":"🇺🇸","Paraguai":"🇵🇾",
+  "Austrália":"🇦🇺","Turquia":"🇹🇷","Catar":"🇶🇦","Suíça":"🇨🇭",
+  "Brasil":"🇧🇷","Marrocos":"🇲🇦","Haiti":"🇭🇹","Escócia":"🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+  "Alemanha":"🇩🇪","Curaçao":"🇨🇼","Holanda":"🇳🇱","Japão":"🇯🇵",
+  "Costa do Marfim":"🇨🇮","Equador":"🇪🇨","Suécia":"🇸🇪","Tunísia":"🇹🇳",
+  "Espanha":"🇪🇸","Cabo Verde":"🇨🇻","Bélgica":"🇧🇪","Egito":"🇪🇬",
+  "Arábia Saudita":"🇸🇦","Uruguai":"🇺🇾","Irã":"🇮🇷","Nova Zelândia":"🇳🇿",
+  "Argentina":"🇦🇷","Argélia":"🇩🇿","França":"🇫🇷","Senegal":"🇸🇳",
+  "Iraque":"🇮🇶","Noruega":"🇳🇴","Áustria":"🇦🇹","Jordânia":"🇯🇴",
+  "Portugal":"🇵🇹","RD Congo":"🇨🇩","Inglaterra":"🏴󠁧󠁢󠁥󠁮󠁧󠁿","Croácia":"🇭🇷",
+  "Gana":"🇬🇭","Panamá":"🇵🇦","Uzbequistão":"🇺🇿","Colômbia":"🇨🇴",
 };
 
-function gerarJogos() {
-  const jogos = []; let id = 1;
-  const base = new Date("2026-06-11");
-  let dia = 0;
-  const hrs = ["12:00","15:00","18:00","21:00"];
-  const estadios = ["MetLife Stadium, NJ","AT&T Stadium, Dallas","SoFi Stadium, LA",
-    "Levi's Stadium, SF","Arrowhead Stadium, KC","Rose Bowl, Pasadena",
-    "Mercedes-Benz Stadium, Atlanta","Gillette Stadium, Boston",
-    "Lincoln Financial Field, Philadelphia","Empower Field, Denver",
-    "Lumen Field, Seattle","Estadio Azteca, México","Estadio BBVA, Monterrey",
-    "Estadio Akron, Guadalajara","BC Place, Vancouver","BMO Field, Toronto"];
-  Object.entries(GRUPOS).forEach(([g,ts]) => {
-    [[0,1],[2,3],[0,2],[1,3],[0,3],[1,2]].forEach(([a,b]) => {
-      const d = new Date(base); d.setDate(d.getDate()+dia);
-      jogos.push({id,grupo:g,timeCasa:ts[a],timeFora:ts[b],
-        data:d.toLocaleDateString("pt-BR"),hora:hrs[id%4],
-        estadio:estadios[id%estadios.length],
-        golsCasa:null,golsFora:null,status:"pendente"});
-      id++; dia=(dia+1)%12;
-    });
-  });
-  return jogos;
-}
-
-function calcPts(pal, jogo) {
-  if (jogo.golsCasa===null||!pal) return null;
-  if (pal.golsCasa===jogo.golsCasa&&pal.golsFora===jogo.golsFora) return 3;
-  const vR=jogo.golsCasa>jogo.golsFora?"c":jogo.golsCasa<jogo.golsFora?"f":"e";
-  const vP=pal.golsCasa>pal.golsFora?"c":pal.golsCasa<pal.golsFora?"f":"e";
+function calcPts(pal,jogo){
+  if(jogo.gols1===null||jogo.gols1===undefined||!pal) return null;
+  if(pal.gols1===jogo.gols1&&pal.gols2===jogo.gols2) return 3;
+  const vR=jogo.gols1>jogo.gols2?"1":jogo.gols1<jogo.gols2?"2":"e";
+  const vP=pal.gols1>pal.gols2?"1":pal.gols1<pal.gols2?"2":"e";
   return vR===vP?1:0;
 }
 
-function avatarBg(n) {
+function avatarBg(n){
   const cols=["#1a5c2e","#1565c0","#6a1b9a","#ad1457","#e65100","#00695c","#4527a0"];
   let h=0; for(let i=0;i<(n||"").length;i++) h=(n||"").charCodeAt(i)+((h<<5)-h);
   return cols[Math.abs(h)%cols.length];
 }
-function avHtml(nome,size,fs) {
+function avHtml(nome,size,fs){
   const bg=avatarBg(nome||"?");
   const ini=(nome||"?").split(" ").map(p=>p[0]).join("").toUpperCase().slice(0,2);
   return `<div class="av" style="width:${size}px;height:${size}px;background:${bg};font-size:${fs}px">${ini}</div>`;
@@ -146,103 +178,73 @@ function flag(t,s){ return `<span style="font-size:${s||20}px">${FLAGS[t]||"🏳
 function tag(txt,tipo){ return `<span class="tag tag-${tipo||"gray"}">${txt}</span>`; }
 
 // ── ESTADO ────────────────────────────────────────────────────
-let STATE = {
-  usuario:null, usuarios:{}, jogos:{}, palpites:{},
-  pagina:"login", grupoAtivo:"A", adminAba:"jogos",
-  palTemp:{}, aba:"login"
-};
+let S={usuario:null,usuarios:{},jogos:{},palpites:{},pagina:"login",grupoAtivo:"A",adminAba:"jogos",palTemp:{},aba:"login",importAberto:false};
 
-// ── FIREBASE HELPERS ──────────────────────────────────────────
-async function fbGet(path){ const s=await get(ref(db,path)); return s.exists()?s.val():null; }
+async function fbGet(path){ const snap=await get(ref(db,path)); return snap.exists()?snap.val():null; }
 async function fbSet(path,val){ await set(ref(db,path),val); }
-async function fbUpdate(path,val){ await update(ref(db,path),val); }
+async function fbUpd(path,val){ await update(ref(db,path),val); }
 
-// ── INIT ──────────────────────────────────────────────────────
-async function init() {
-  // Carregar ou criar jogos
-  let jogos = await fbGet("jogos");
-  if (!jogos) {
-    jogos = {};
-    gerarJogos().forEach(j=>{ jogos[j.id]=j; });
-    await fbSet("jogos", jogos);
+async function init(){
+  let jogos=await fbGet("jogos");
+  if(!jogos){
+    jogos={};
+    JOGOS_BASE.forEach(j=>{ jogos[j.id]=j; });
+    await fbSet("jogos",jogos);
   }
-  STATE.jogos = jogos;
-
-  // Carregar usuários
-  STATE.usuarios = await fbGet("usuarios") || {};
-
-  // Criar admin padrão se não existir
-  if (!Object.values(STATE.usuarios).find(u=>u.username==="admin")) {
-    const id = "admin";
-    STATE.usuarios[id] = {id,nome:"Admin",username:"admin",senha:"admin123",isAdmin:true};
-    await fbSet("usuarios/"+id, STATE.usuarios[id]);
+  S.jogos=jogos;
+  S.usuarios=await fbGet("usuarios")||{};
+  if(!Object.values(S.usuarios).find(u=>u.username==="admin")){
+    await fbSet("usuarios/admin",{id:"admin",nome:"Admin",username:"admin",senha:"admin123",isAdmin:true});
+    S.usuarios["admin"]={id:"admin",nome:"Admin",username:"admin",senha:"admin123",isAdmin:true};
   }
-
-  // Carregar palpites
-  STATE.palpites = await fbGet("palpites") || {};
-
-  // Checar sessão salva
-  const sess = localStorage.getItem("bolao_user");
-  if (sess) {
-    const u = STATE.usuarios[sess];
-    if (u) STATE.usuario = u;
-  }
-
+  S.palpites=await fbGet("palpites")||{};
+  const sess=localStorage.getItem("bolao_user");
+  if(sess&&S.usuarios[sess]) S.usuario=S.usuarios[sess];
   document.getElementById("loading").style.display="none";
   document.getElementById("app").style.display="block";
   render();
-
-  // Listener em tempo real
-  onValue(ref(db,"jogos"), snap=>{ if(snap.exists()){STATE.jogos=snap.val();render();} });
-  onValue(ref(db,"palpites"), snap=>{ if(snap.exists()){STATE.palpites=snap.val();render();} });
-  onValue(ref(db,"usuarios"), snap=>{ if(snap.exists()){STATE.usuarios=snap.val();render();} });
+  onValue(ref(db,"jogos"),snap=>{ if(snap.exists()){S.jogos=snap.val();render();} });
+  onValue(ref(db,"palpites"),snap=>{ if(snap.exists()){S.palpites=snap.val();render();} });
+  onValue(ref(db,"usuarios"),snap=>{ if(snap.exists()){S.usuarios=snap.val();render();} });
 }
 
-// ── HELPERS ───────────────────────────────────────────────────
-function toast(msg,tipo) {
-  const el=document.getElementById("toast");
-  if(!el)return;
-  el.textContent=msg;
-  el.style.background=tipo==="err"?"#c62828":"#1a5c2e";
-  el.style.display="block";
-  clearTimeout(window._toastT);
-  window._toastT=setTimeout(()=>el.style.display="none",3000);
+function toast(msg,tipo){
+  const el=document.getElementById("toast"); if(!el)return;
+  el.textContent=msg; el.style.background=tipo==="err"?"#c62828":"#1a5c2e"; el.style.display="block";
+  clearTimeout(window._tt); window._tt=setTimeout(()=>el.style.display="none",3000);
 }
 
-function jogosArr(){ return Object.values(STATE.jogos).sort((a,b)=>a.id-b.id); }
-function usuariosArr(){ return Object.values(STATE.usuarios); }
-function getPal(jId){ return (STATE.palpites[STATE.usuario?.id]||{})[jId]||null; }
+function jogosArr(){ return Object.values(S.jogos).sort((a,b)=>a.id-b.id); }
+function usuariosArr(){ return Object.values(S.usuarios); }
+function getPal(jId){ return (S.palpites[S.usuario?.id]||{})[jId]||null; }
 
-function getRanking() {
+function getRanking(){
   return usuariosArr().map(u=>{
-    const meus=STATE.palpites[u.id]||{};
+    const meus=S.palpites[u.id]||{};
     let total=0,acertos=0,exatos=0;
     jogosArr().forEach(j=>{
-      if(j.golsCasa===null||j.golsCasa===undefined) return;
+      if(j.gols1===null||j.gols1===undefined) return;
       const p=meus[j.id]; if(!p) return;
       const pts=calcPts(p,j);
-      if(pts>0){total+=pts;acertos++;}
-      if(pts===3) exatos++;
+      if(pts>0){total+=pts;acertos++;} if(pts===3)exatos++;
     });
     return {...u,total,acertos,exatos};
   }).sort((a,b)=>b.total-a.total||b.acertos-a.acertos||a.nome.localeCompare(b.nome));
 }
 
 // ── RENDER ────────────────────────────────────────────────────
-function render() {
-  const app=document.getElementById("app");
-  if(!app)return;
-
-  const {usuario,pagina,grupoAtivo,aba,adminAba}=STATE;
+function render(){
+  const app=document.getElementById("app"); if(!app)return;
+  const {usuario,pagina,grupoAtivo,aba,adminAba,importAberto}=S;
   const ranking=getRanking();
   const myData=ranking.find(r=>r.id===usuario?.id)||{total:0,acertos:0,exatos:0};
   const myRank=ranking.findIndex(r=>r.id===usuario?.id)+1;
-  const todosJogos=jogosArr();
-  const encerrados=todosJogos.filter(j=>j.status==="encerrado");
-  const proxJogos=todosJogos.filter(j=>j.status==="pendente").slice(0,4);
+  const todos=jogosArr();
+  const encerrados=todos.filter(j=>j.status==="encerrado");
+  const proxJogos=todos.filter(j=>j.status==="pendente").slice(0,4);
 
-  // LOGIN
-  if(!usuario) {
+  // ── LOGIN ──
+  if(!usuario){
     app.innerHTML=`
     <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f3f4f6;padding:1rem">
       <div class="card" style="width:100%;max-width:400px">
@@ -279,16 +281,17 @@ function render() {
     return;
   }
 
-  // NAV
+  // ── PÁGINAS ──
   const pages=[["dashboard","🏠 Início"],["palpites","✏️ Palpites"],["ranking","🏅 Ranking"]];
   if(usuario.isAdmin) pages.push(["admin","⚙️ Admin"]);
   pages.push(["perfil","👤 Perfil"]);
   const navBtns=pages.map(([p,l])=>`<button class="nav-btn ${pagina===p?'active':''}" onclick="ir('${p}')">${l}</button>`).join("");
 
-  // DASHBOARD
   let content="";
+
+  // ── DASHBOARD ──
   if(pagina==="dashboard"){
-    const podCores=["#f59e0b","#9ca3af","#b45309","#1a5c2e","#1a5c2e"];
+    const pc=["#f59e0b","#9ca3af","#b45309","#1a5c2e","#1a5c2e"];
     content=`
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:10px">
       <div style="display:flex;align-items:center;gap:12px">
@@ -301,7 +304,7 @@ function render() {
       <button class="btn-s" onclick="doLogout()">Sair</button>
     </div>
     <div class="grid4">
-      ${[["#"+myRank,"Minha posição"],[myData.total+" pts","Pontuação"],[myData.acertos,"Acertos"],[encerrados.length+"/"+todosJogos.length,"Jogos"]].map(([v,l])=>`
+      ${[["#"+myRank,"Minha posição"],[myData.total+" pts","Pontuação"],[myData.acertos,"Acertos"],[encerrados.length+"/"+todos.length,"Jogos"]].map(([v,l])=>`
         <div class="stat-box"><div class="val">${v}</div><div class="lbl">${l}</div></div>`).join("")}
     </div>
     <div class="grid2">
@@ -309,18 +312,17 @@ function render() {
         <h3 style="font-size:15px;font-weight:500;margin:0 0 10px">🗓️ Próximos jogos</h3>
         ${proxJogos.map(j=>`
           <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #e5e7eb;font-size:13px">
-            ${flag(j.timeCasa,16)} <span style="flex:1">${j.timeCasa} × ${j.timeFora}</span> ${flag(j.timeFora,16)}
-            <span style="font-size:11px;color:#555">${j.data}</span>
+            ${flag(j.time1,16)}<span style="flex:1">${j.time1} × ${j.time2}</span>${flag(j.time2,16)}
+            <span style="font-size:11px;color:#555">${j.data} ${j.hora}</span>
           </div>`).join("")}
         <button class="btn-s" style="margin-top:10px;width:100%" onclick="ir('palpites')">Ver todos →</button>
       </div>
       <div class="card">
         <h3 style="font-size:15px;font-weight:500;margin:0 0 10px;display:flex;justify-content:space-between">
-          <span>🏆 Liderança</span>
-          <span style="font-size:11px;font-weight:400;color:#555">${usuariosArr().length} participantes</span>
+          <span>🏆 Liderança</span><span style="font-size:11px;font-weight:400;color:#555">${usuariosArr().length} participantes</span>
         </h3>
         ${ranking.slice(0,5).map((u,i)=>{
-          const lider=ranking[0]?ranking[0].total:1;
+          const lider=ranking[0]?.total||1;
           const pct=lider>0?Math.round((u.total/lider)*100):0;
           const isMe=u.id===usuario.id;
           return `<div style="padding:7px 8px;border-radius:8px;margin-bottom:5px;background:${isMe?'#f0fdf4':'transparent'};border:1px solid ${isMe?'#86efac':'#e5e7eb'}">
@@ -328,10 +330,10 @@ function render() {
               <span style="font-size:16px;width:22px;text-align:center">${i===0?"🥇":i===1?"🥈":i===2?"🥉":(i+1)+"."}</span>
               ${avHtml(u.nome,22,9)}
               <span style="flex:1;font-size:13px;font-weight:${isMe?500:400}">${u.nome}${isMe?" 👈":""}</span>
-              <span style="font-size:13px;font-weight:500;color:${podCores[i]||'#1a5c2e'}">${u.total} pts</span>
+              <span style="font-size:13px;font-weight:500;color:${pc[i]||'#1a5c2e'}">${u.total} pts</span>
             </div>
             <div style="height:4px;background:#e5e7eb;border-radius:99px">
-              <div style="height:100%;width:${pct}%;background:${podCores[i]||'#1a5c2e'};border-radius:99px"></div>
+              <div style="height:100%;width:${pct}%;background:${pc[i]||'#1a5c2e'};border-radius:99px"></div>
             </div>
           </div>`;
         }).join("")}
@@ -349,46 +351,74 @@ function render() {
     </div>`;
   }
 
-  // PALPITES
+  // ── PALPITES ──
   else if(pagina==="palpites"){
-    const jogosFiltrados=todosJogos.filter(j=>j.grupo===grupoAtivo);
-    const grpBtns=Object.keys(GRUPOS).map(g=>`
+    const filtrados=todos.filter(j=>j.grupo===grupoAtivo);
+    const grpBtns=GRUPOS.map(g=>`
       <button class="grupo-btn" style="background:${grupoAtivo===g?'#1a5c2e':'#e5e7eb'};color:${grupoAtivo===g?'#fff':'#111'}"
         onclick="setGrupo('${g}')">Grupo ${g}</button>`).join("");
-    const jogosHtml=jogosFiltrados.map(j=>{
+
+    const importHtml=importAberto?`
+      <div class="import-box">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <h3 style="font-size:15px;font-weight:500;margin:0">📥 Importar palpites via CSV</h3>
+          <button class="btn-s" style="padding:4px 10px;font-size:12px" onclick="toggleImport()">✕ Fechar</button>
+        </div>
+        <p style="font-size:13px;color:#555;margin-bottom:10px">
+          1. Baixe o modelo com todos os jogos já listados<br>
+          2. Preencha apenas as colunas <strong>gols1</strong> e <strong>gols2</strong><br>
+          3. Salve e faça o upload abaixo
+        </p>
+        <div class="mono">jogo_id;time1;time2;gols1;gols2
+1;México;África do Sul;2;1
+2;Coreia do Sul;República Tcheca;0;0</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+          <button class="btn-p" style="font-size:13px;padding:6px 14px" onclick="baixarModelo()">⬇️ Baixar modelo CSV</button>
+        </div>
+        <label style="font-size:13px;font-weight:500;display:block;margin-bottom:6px">📂 Selecionar arquivo CSV preenchido:</label>
+        <input type="file" accept=".csv,.txt" onchange="importarCSV(event)" style="width:auto;margin-bottom:8px"/>
+        <div id="import-msg" style="font-size:13px;margin-top:4px"></div>
+      </div>`:
+      `<div style="margin-bottom:12px">
+        <button class="btn-p" style="font-size:13px;padding:6px 16px" onclick="toggleImport()">📥 Importar palpites via CSV</button>
+      </div>`;
+
+    const jogosHtml=filtrados.map(j=>{
       const pal=getPal(j.id), enc=j.status==="encerrado";
       const pts=pal&&enc?calcPts(pal,j):null;
-      const tmp=STATE.palTemp[j.id]||{};
-      const vC=tmp.golsCasa!==undefined?tmp.golsCasa:(pal?pal.golsCasa:"");
-      const vF=tmp.golsFora!==undefined?tmp.golsFora:(pal?pal.golsFora:"");
+      const tmp=S.palTemp[j.id]||{};
+      const vC=tmp.gols1!==undefined?tmp.gols1:(pal?pal.gols1:"");
+      const vF=tmp.gols2!==undefined?tmp.gols2:(pal?pal.gols2:"");
       return `<div class="jogo-card">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px">
-          <span style="font-size:11px;color:#555">${j.data} ${j.hora} · ${j.estadio}</span>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:6px">
+          <div style="font-size:11px;color:#555">${j.rodada} · ${j.data} ${j.hora}<br>${j.estadio}</div>
           <div>${tag(enc?"Encerrado":"Aberto",enc?"green":"orange")}${pts!==null?" "+tag(pts+" pts",pts===3?"green":pts===1?"blue":"gray"):""}</div>
         </div>
         <div class="jogo-times">
-          <div style="flex:1;text-align:center">${flag(j.timeCasa,28)}<div style="font-size:12px;margin-top:4px">${j.timeCasa}</div></div>
+          <div style="flex:1;text-align:center">${flag(j.time1,28)}<div style="font-size:12px;margin-top:4px">${j.time1}</div></div>
           <div style="display:flex;align-items:center;gap:6px">
             ${enc
-              ?`<span style="font-size:22px;font-weight:500;color:#555">${j.golsCasa} × ${j.golsFora}</span>`
-              :`<input class="gol-input" type="number" min="0" max="20" value="${vC}" oninput="setPalTemp(${j.id},'casa',this.value)"/>
+              ?`<span style="font-size:22px;font-weight:500;color:#555">${j.gols1} × ${j.gols2}</span>`
+              :`<input class="gol-input" type="number" min="0" max="20" value="${vC}" oninput="setPalTemp(${j.id},'gols1',this.value)"/>
                <span style="font-size:14px;color:#555">×</span>
-               <input class="gol-input" type="number" min="0" max="20" value="${vF}" oninput="setPalTemp(${j.id},'fora',this.value)"/>`}
+               <input class="gol-input" type="number" min="0" max="20" value="${vF}" oninput="setPalTemp(${j.id},'gols2',this.value)"/>`}
           </div>
-          <div style="flex:1;text-align:center">${flag(j.timeFora,28)}<div style="font-size:12px;margin-top:4px">${j.timeFora}</div></div>
+          <div style="flex:1;text-align:center">${flag(j.time2,28)}<div style="font-size:12px;margin-top:4px">${j.time2}</div></div>
         </div>
         ${!enc?`<div style="text-align:center"><button class="btn-p" style="padding:6px 20px;font-size:13px" onclick="salvarPalpite(${j.id})">
           ${pal?"Atualizar palpite":"Salvar palpite"}</button></div>`:""}
-        ${enc&&pal?`<div style="text-align:center;font-size:12px;color:#555;margin-top:4px">Seu palpite: ${pal.golsCasa} × ${pal.golsFora}</div>`:""}
+        ${enc&&pal?`<div style="text-align:center;font-size:12px;color:#555;margin-top:4px">Seu palpite: ${pal.gols1} × ${pal.gols2}</div>`:""}
       </div>`;
     }).join("");
+
     content=`
     <h2 style="font-size:18px;font-weight:500;margin:0 0 1rem">✏️ Meus palpites</h2>
-    <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:1.25rem">${grpBtns}</div>
+    ${importHtml}
+    <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:1rem">${grpBtns}</div>
     ${jogosHtml}`;
   }
 
-  // RANKING
+  // ── RANKING ──
   else if(pagina==="ranking"){
     content=`
     <h2 style="font-size:18px;font-weight:500;margin:0 0 1rem">🏅 Classificação — ${usuariosArr().length} participantes</h2>
@@ -412,7 +442,7 @@ function render() {
     </div>`;
   }
 
-  // PERFIL
+  // ── PERFIL ──
   else if(pagina==="perfil"){
     content=`
     <h2 style="font-size:18px;font-weight:500;margin:0 0 1rem">👤 Meu perfil</h2>
@@ -429,7 +459,7 @@ function render() {
       </div>
       <div class="card">
         <h3 style="font-size:15px;font-weight:500;margin:0 0 12px">Meu desempenho</h3>
-        ${[["Posição","#"+myRank+" de "+usuariosArr().length],["Pontuação",myData.total+" pts"],["Acertos",myData.acertos],["Cravados",myData.exatos],["Palpites enviados",Object.keys(STATE.palpites[usuario.id]||{}).length]].map(([l,v])=>`
+        ${[["Posição","#"+myRank+" de "+usuariosArr().length],["Pontuação",myData.total+" pts"],["Acertos",myData.acertos],["Cravados",myData.exatos],["Palpites enviados",Object.keys(S.palpites[usuario.id]||{}).length]].map(([l,v])=>`
           <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #e5e7eb;font-size:13px">
             <span style="color:#555">${l}</span><span style="font-weight:500">${v}</span>
           </div>`).join("")}
@@ -437,29 +467,32 @@ function render() {
     </div>`;
   }
 
-  // ADMIN
+  // ── ADMIN ──
   else if(pagina==="admin"&&usuario.isAdmin){
     const abaBtns=["jogos","usuarios"].map(a=>`
       <button class="grupo-btn" style="background:${adminAba===a?'#1a5c2e':'#e5e7eb'};color:${adminAba===a?'#fff':'#111'}"
         onclick="setAdminAba('${a}')">${a==="jogos"?"Resultados":"Usuários"}</button>`).join("");
     let abaContent="";
     if(adminAba==="jogos"){
-      const pendentes=todosJogos.filter(j=>j.status==="pendente");
-      const opts=pendentes.map(j=>`<option value="${j.id}">${j.timeCasa} × ${j.timeFora} (${j.data} — Grupo ${j.grupo})</option>`).join("");
+      const pendentes=todos.filter(j=>j.status==="pendente");
       abaContent=`
         <h3 style="font-size:15px;font-weight:500;margin:0 0 8px">Lançar resultado oficial</h3>
-        <select id="adm-jogo" style="margin-bottom:10px"><option value="">— Selecione um jogo —</option>${opts}</select>
+        <p style="font-size:12px;color:#555;margin-bottom:10px">Os pontos são calculados automaticamente para todos os participantes.</p>
+        <select id="adm-jogo" style="margin-bottom:10px">
+          <option value="">— Selecione um jogo —</option>
+          ${pendentes.map(j=>`<option value="${j.id}">#${j.id} ${j.time1} × ${j.time2} (${j.data} — Grupo ${j.grupo})</option>`).join("")}
+        </select>
         <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px">
-          <input id="adm-gc" type="number" min="0" max="20" placeholder="Gols casa" style="flex:1"/>
+          <input id="adm-g1" type="number" min="0" max="20" placeholder="Gols time 1" style="flex:1"/>
           <span style="font-weight:500">×</span>
-          <input id="adm-gf" type="number" min="0" max="20" placeholder="Gols fora" style="flex:1"/>
+          <input id="adm-g2" type="number" min="0" max="20" placeholder="Gols time 2" style="flex:1"/>
           <button class="btn-p" onclick="lancarResultado()">Confirmar</button>
         </div>
-        <h3 style="font-size:15px;font-weight:500;margin:12px 0 8px">Resultados lançados (${encerrados.length})</h3>
+        <h3 style="font-size:15px;font-weight:500;margin:12px 0 8px">Encerrados (${encerrados.length})</h3>
         ${encerrados.length===0?'<p style="font-size:13px;color:#555">Nenhum ainda.</p>':
           encerrados.map(j=>`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #e5e7eb;font-size:13px">
-            ${flag(j.timeCasa,16)} ${j.timeCasa} ${j.golsCasa} × ${j.golsFora} ${j.timeFora} ${flag(j.timeFora,16)}
-            <span style="margin-left:auto">${tag("Encerrado","green")}</span>
+            ${flag(j.time1,16)} ${j.time1} <strong>${j.gols1}×${j.gols2}</strong> ${j.time2} ${flag(j.time2,16)}
+            <span style="margin-left:auto;font-size:11px;color:#555">${j.data}</span>
           </div>`).join("")}`;
     } else {
       abaContent=`
@@ -492,6 +525,7 @@ function render() {
     <div style="display:flex;align-items:center;gap:2px;flex-wrap:wrap">${navBtns}
       <div style="width:1px;height:20px;background:#e5e7eb;margin:0 4px"></div>
       ${avHtml(usuario.nome,28,11)}
+      <button class="nav-btn" onclick="doLogout()" style="color:#dc2626">Sair</button>
     </div>
   </nav>
   <main>${content}</main>
@@ -499,21 +533,21 @@ function render() {
 }
 
 // ── AÇÕES ─────────────────────────────────────────────────────
-window.setAba=function(a){ STATE.aba=a; render(); }
-window.ir=function(p){ STATE.pagina=p; render(); }
-window.setGrupo=function(g){ STATE.grupoAtivo=g; render(); }
-window.setAdminAba=function(a){ STATE.adminAba=a; render(); }
+window.setAba=a=>{ S.aba=a; render(); };
+window.ir=p=>{ S.pagina=p; render(); };
+window.setGrupo=g=>{ S.grupoAtivo=g; render(); };
+window.setAdminAba=a=>{ S.adminAba=a; render(); };
+window.toggleImport=()=>{ S.importAberto=!S.importAberto; render(); };
 
-window.doLogin=async function(){
+window.doLogin=async()=>{
   const user=document.getElementById("l-user")?.value.trim();
   const senha=document.getElementById("l-senha")?.value;
-  const u=Object.values(STATE.usuarios).find(x=>x.username===user&&x.senha===senha);
-  if(!u){ document.getElementById("login-erro").style.display="block"; document.getElementById("login-erro").textContent="Usuário ou senha incorretos."; return; }
-  STATE.usuario=u; localStorage.setItem("bolao_user",u.id);
-  STATE.pagina="dashboard"; render();
-}
+  const u=Object.values(S.usuarios).find(x=>x.username===user&&x.senha===senha);
+  if(!u){ const el=document.getElementById("login-erro"); el.style.display="block"; el.textContent="Usuário ou senha incorretos."; return; }
+  S.usuario=u; localStorage.setItem("bolao_user",u.id); S.pagina="dashboard"; render();
+};
 
-window.doCadastro=async function(){
+window.doCadastro=async()=>{
   const nome=document.getElementById("c-nome")?.value.trim();
   const user=document.getElementById("c-user")?.value.trim().toLowerCase().replace(/\s/g,"_");
   const senha=document.getElementById("c-senha")?.value;
@@ -522,52 +556,87 @@ window.doCadastro=async function(){
   if(!nome||!user||!senha){el.style.display="block";el.textContent="Preencha todos os campos.";return;}
   if(senha!==senha2){el.style.display="block";el.textContent="As senhas não coincidem.";return;}
   if(senha.length<4){el.style.display="block";el.textContent="Senha deve ter ao menos 4 caracteres.";return;}
-  if(Object.values(STATE.usuarios).find(x=>x.username===user)){el.style.display="block";el.textContent="Nome de usuário já existe.";return;}
+  if(Object.values(S.usuarios).find(x=>x.username===user)){el.style.display="block";el.textContent="Nome de usuário já existe.";return;}
   const id="u_"+Date.now();
   const novo={id,nome,username:user,senha,isAdmin:false};
   await fbSet("usuarios/"+id,novo);
-  STATE.usuario=novo; localStorage.setItem("bolao_user",id);
-  STATE.pagina="dashboard"; render();
-}
+  S.usuario=novo; localStorage.setItem("bolao_user",id); S.pagina="dashboard"; render();
+};
 
-window.doLogout=function(){
-  STATE.usuario=null; localStorage.removeItem("bolao_user");
-  STATE.pagina="login"; render();
-}
+window.doLogout=()=>{ S.usuario=null; localStorage.removeItem("bolao_user"); S.pagina="login"; render(); };
 
-window.setPalTemp=function(jId,lado,val){
-  if(!STATE.palTemp[jId]) STATE.palTemp[jId]={};
-  STATE.palTemp[jId][lado==="casa"?"golsCasa":"golsFora"]=parseInt(val)||0;
-}
+window.setPalTemp=(jId,campo,val)=>{
+  if(!S.palTemp[jId]) S.palTemp[jId]={};
+  S.palTemp[jId][campo]=parseInt(val)||0;
+};
 
-window.salvarPalpite=async function(jId){
-  const tmp=STATE.palTemp[jId];
-  if(!tmp||tmp.golsCasa===undefined||tmp.golsFora===undefined){toast("Preencha o placar!","err");return;}
-  const uid=STATE.usuario.id;
-  await fbSet(`palpites/${uid}/${jId}`,{golsCasa:tmp.golsCasa,golsFora:tmp.golsFora});
+window.salvarPalpite=async(jId)=>{
+  const tmp=S.palTemp[jId];
+  if(!tmp||tmp.gols1===undefined||tmp.gols2===undefined){toast("Preencha o placar!","err");return;}
+  await fbSet(`palpites/${S.usuario.id}/${jId}`,{gols1:tmp.gols1,gols2:tmp.gols2});
   toast("Palpite salvo!");
-}
+};
 
-window.lancarResultado=async function(){
+window.lancarResultado=async()=>{
   const jId=parseInt(document.getElementById("adm-jogo")?.value);
-  const gC=parseInt(document.getElementById("adm-gc")?.value);
-  const gF=parseInt(document.getElementById("adm-gf")?.value);
-  if(!jId||isNaN(gC)||isNaN(gF)){toast("Selecione um jogo e preencha o placar.","err");return;}
-  await fbUpdate(`jogos/${jId}`,{golsCasa:gC,golsFora:gF,status:"encerrado"});
+  const g1=parseInt(document.getElementById("adm-g1")?.value);
+  const g2=parseInt(document.getElementById("adm-g2")?.value);
+  if(!jId||isNaN(g1)||isNaN(g2)){toast("Selecione um jogo e preencha o placar.","err");return;}
+  await fbUpd(`jogos/${jId}`,{gols1:g1,gols2:g2,status:"encerrado"});
   toast("Resultado lançado!");
-}
+};
 
-window.salvarPerfil=async function(){
+window.salvarPerfil=async()=>{
   const nome=document.getElementById("p-nome")?.value.trim();
   const senha=document.getElementById("p-senha")?.value;
   if(!nome){toast("Nome não pode estar vazio.","err");return;}
   const upd={nome};
   if(senha){if(senha.length<4){toast("Senha muito curta.","err");return;} upd.senha=senha;}
-  const uid=STATE.usuario.id;
-  await fbUpdate(`usuarios/${uid}`,upd);
-  STATE.usuario={...STATE.usuario,...upd};
-  toast("Perfil atualizado!");
-}
+  await fbUpd(`usuarios/${S.usuario.id}`,upd);
+  S.usuario={...S.usuario,...upd}; toast("Perfil atualizado!"); render();
+};
+
+window.baixarModelo=()=>{
+  const todos=jogosArr();
+  const linhas=[["jogo_id","time1","time2","gols1","gols2"]];
+  todos.forEach(j=>linhas.push([j.id,j.time1,j.time2,"",""]));
+  const csv=linhas.map(l=>l.join(";")).join("\n");
+  const url=URL.createObjectURL(new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"}));
+  const a=document.createElement("a"); a.href=url; a.download="bolao2026_modelo.csv"; a.click(); URL.revokeObjectURL(url);
+};
+
+window.importarCSV=async(e)=>{
+  const msg=document.getElementById("import-msg"); if(msg) msg.textContent="";
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=async ev=>{
+    try{
+      const linhas=ev.target.result.trim().split(/\r?\n/).map(l=>l.split(/[;,]/));
+      const hdr=linhas[0].map(h=>h.trim().toLowerCase().replace(/\r/g,""));
+      const iId=hdr.findIndex(h=>h.includes("jogo")||h==="id");
+      const iG1=hdr.findIndex(h=>h==="gols1"||h.includes("gol")&&h.includes("1"));
+      const iG2=hdr.findIndex(h=>h==="gols2"||h.includes("gol")&&h.includes("2"));
+      if(iId<0||iG1<0||iG2<0){if(msg)msg.innerHTML='<span style="color:#dc2626">⚠️ Colunas não encontradas. Use o modelo.</span>';return;}
+      let ok=0,skip=0;
+      const todos=jogosArr();
+      const updates={};
+      linhas.slice(1).forEach(cols=>{
+        const jId=parseInt(cols[iId]);
+        const g1=cols[iG1]?.replace(/\r/g,"").trim();
+        const g2=cols[iG2]?.replace(/\r/g,"").trim();
+        if(isNaN(jId)||g1===""||g2===""){skip++;return;}
+        const jogo=todos.find(j=>j.id===jId);
+        if(!jogo||jogo.status==="encerrado"){skip++;return;}
+        updates[`palpites/${S.usuario.id}/${jId}`]={gols1:parseInt(g1)||0,gols2:parseInt(g2)||0};
+        ok++;
+      });
+      if(ok>0) await update(ref(db),updates);
+      if(msg) msg.innerHTML=`<span style="color:#166534;font-weight:500">✅ ${ok} palpite(s) importado(s).${skip>0?" "+skip+" linha(s) ignorada(s).":""}</span>`;
+      e.target.value="";
+    }catch(err){if(msg)msg.innerHTML='<span style="color:#dc2626">⚠️ Erro ao ler o arquivo.</span>';}
+  };
+  reader.readAsText(file,"UTF-8");
+};
 
 init();
 </script>

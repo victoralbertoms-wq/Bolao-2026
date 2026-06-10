@@ -374,7 +374,9 @@ function render(){
 1;México;África do Sul;2;1
 2;Coreia do Sul;República Tcheca;0;0</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
-          <button class="btn-p" style="font-size:13px;padding:6px 14px" onclick="baixarModelo()">⬇️ Baixar modelo CSV</button>
+          <a href="https://docs.google.com/spreadsheets/d/1E_47jLIjkXVmaVU4crpMUQ1GcpBMu4fV/export?format=xlsx" target="_blank">
+          <button class="btn-p" style="font-size:13px;padding:6px 14px">⬇️ Baixar planilha modelo (.xlsx)</button>
+        </a>
         </div>
         <label style="font-size:13px;font-weight:500;display:block;margin-bottom:6px">📂 Selecionar arquivo preenchido:</label>
         <input type="file" accept=".csv,.txt,.xlsx,.xls" onchange="importarCSV(event)" style="width:auto;margin-bottom:8px"/>

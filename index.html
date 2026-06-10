@@ -577,8 +577,13 @@ window.setPalTemp=(jId,campo,val)=>{
 window.salvarPalpite=async(jId)=>{
   const tmp=S.palTemp[jId];
   if(!tmp||tmp.gols1===undefined||tmp.gols2===undefined){toast("Preencha o placar!","err");return;}
-  await fbSet(`palpites/${S.usuario.id}/${jId}`,{gols1:tmp.gols1,gols2:tmp.gols2});
+  const uid=S.usuario.id;
+  if(!uid){toast("Erro: usuário não identificado.","err");return;}
+  await fbSet(`palpites/${uid}/${jId}`,{gols1:tmp.gols1,gols2:tmp.gols2});
+  if(!S.palpites[uid]) S.palpites[uid]={};
+  S.palpites[uid][jId]={gols1:tmp.gols1,gols2:tmp.gols2};
   toast("Palpite salvo!");
+  render();
 };
 
 window.lancarResultado=async()=>{
@@ -650,6 +655,11 @@ window.importarCSV=async(e)=>{
         ok++;
       });
       if(ok>0) await update(ref(db),updates);
+      if(!S.palpites[S.usuario.id]) S.palpites[S.usuario.id]={};
+      Object.entries(updates).forEach(([k,v])=>{
+        const jId=parseInt(k.split("/")[2]);
+        S.palpites[S.usuario.id][jId]=v;
+      });
       if(msg) msg.innerHTML=`<span style="color:#166534;font-weight:500">✅ ${ok} palpite(s) importado(s).${skip>0?" "+skip+" linha(s) ignorada(s).":""}</span>`;
       e.target.value="";
     }catch(err){if(msg)msg.innerHTML='<span style="color:#dc2626">⚠️ Erro ao ler o arquivo. Verifique o formato.</span>';}

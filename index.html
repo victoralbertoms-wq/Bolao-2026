@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bolão Copa 2026</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:system-ui,sans-serif;background:#f3f4f6;color:#111;min-height:100vh}
+    input,select,button{font-family:inherit;font-size:14px}
+    input,select{width:100%;padding:8px 10px;border:1px solid #d1d5db;border-radius:8px;background:#fff;color:#111;margin-bottom:8px}
+    button{cursor:pointer;border:none;border-radius:8px;padding:8px 18px;font-weight:500}
+    .btn-p{background:#1a5c2e;color:#fff}
+    .btn-p:hover{background:#145223}
+    .btn-s{background:#e5e7eb;color:#111}
+    .btn-s:hover{background:#d1d5db}
+    .card{background:#fff;border-radius:12px;padding:1.25rem;border:1px solid #e5e7eb}
+    .toast{position:fixed;bottom:24px;right:24px;padding:10px 18px;border-radius:10px;color:#fff;font-weight:500;font-size:14px;z-index:9999;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+    nav{background:#fff;border-bottom:1px solid #e5e7eb;padding:0 1rem;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100}
+    .nav-btn{background:transparent;border:none;padding:6px 10px;font-size:13px;color:#555;border-radius:8px}
+    .nav-btn.active{background:#f3f4f6;color:#111;font-weight:500}
+    main{max-width:900px;margin:0 auto;padding:1.5rem 1rem}
+    .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+    .grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:1.5rem}
+    .stat-box{background:#f0fdf4;border-radius:10px;padding:1rem;text-align:center}
+    .stat-box .val{font-size:26px;font-weight:500}
+    .stat-box .lbl{font-size:12px;color:#555;margin-top:4px}
+    .tag{display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:500}
+    .tag-green{background:#dcfce7;color:#166534}
+    .tag-blue{background:#dbeafe;color:#1d4ed8}
+    .tag-orange{background:#ffedd5;color:#c2410c}
+    .tag-gray{background:#f3f4f6;color:#555}
+    .rank-row{display:grid;grid-template-columns:36px 1fr 54px 54px 54px;gap:6px;align-items:center;padding:8px 10px;border-radius:8px;margin-bottom:2px}
+    .grupo-btn{padding:4px 10px;border-radius:8px;font-size:12px;border:none;cursor:pointer}
+    .jogo-card{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:1rem;margin-bottom:10px}
+    .jogo-times{display:flex;align-items:center;gap:8px;justify-content:center;margin:.75rem 0}
+    .gol-input{width:48px;text-align:center;font-size:20px;font-weight:500;padding:4px;border-radius:8px;border:1px solid #d1d5db}
+    .av{border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:500;color:#fff;flex-shrink:0}
+    #loading{position:fixed;inset:0;background:#f3f4f6;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;z-index:9999}
+    .spinner{width:36px;height:36px;border:3px solid #d1d5db;border-top-color:#1a5c2e;border-radius:50%;animation:spin .8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+
+<div id="loading">
+  <div style="font-size:44px">🏆</div>
+  <div class="spinner"></div>
+  <p style="font-size:14px;color:#555">Carregando bolão...</p>
+</div>
+
+<div id="app" style="display:none"></div>
+
+<!-- Firebase -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, get, onValue, push, update }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCUrGonXjFoTKdu3BTemjfcONiDL_YLO6M",
+  authDomain: "bolao-cartorio.firebaseapp.com",
+  databaseURL: "https://bolao-cartorio-default-rtdb.firebaseio.com",
+  projectId: "bolao-cartorio",
+  storageBucket: "bolao-cartorio.firebasestorage.app",
+  messagingSenderId: "881858825480",
+  appId: "1:881858825480:web:42accf5c8b37b2559430bd"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// ── DADOS ──────────────────────────────────────────────────────
+const GRUPOS = {
+  A:["Estados Unidos","Panamá","Honduras","Marrocos"],
+  B:["Argentina","Chile","Peru","Austrália"],
+  C:["México","Jamaica","Venezuela","Nova Zelândia"],
+  D:["Canadá","Uruguai","Rep. Checa","Albânia"],
+  E:["Alemanha","Escócia","Hungria","Coreia do Sul"],
+  F:["Bélgica","Turquia","Eslováquia","Egito"],
+  G:["Brasil","Colômbia","Suíça","Camarões"],
+  H:["França","Portugal","Bósnia-Herz.","Irã"],
+  I:["Espanha","Croácia","Nigéria","Tailândia"],
+  J:["Inglaterra","Holanda","Senegal","Arábia Saudita"],
+  K:["Japão","Sérvia","Costa do Marfim","Rep. Dominicana"],
+  L:["Ucrânia","Áustria","Costa Rica","Gana"],
+};
+const FLAGS = {
+  "Estados Unidos":"🇺🇸","Panamá":"🇵🇦","Honduras":"🇭🇳","Marrocos":"🇲🇦",
+  "Argentina":"🇦🇷","Chile":"🇨🇱","Peru":"🇵🇪","Austrália":"🇦🇺",
+  "México":"🇲🇽","Jamaica":"🇯🇲","Venezuela":"🇻🇪","Nova Zelândia":"🇳🇿",
+  "Canadá":"🇨🇦","Uruguai":"🇺🇾","Rep. Checa":"🇨🇿","Albânia":"🇦🇱",
+  "Alemanha":"🇩🇪","Escócia":"🏴󠁧󠁢󠁳󠁣󠁴󠁿","Hungria":"🇭🇺","Coreia do Sul":"🇰🇷",
+  "Bélgica":"🇧🇪","Turquia":"🇹🇷","Eslováquia":"🇸🇰","Egito":"🇪🇬",
+  "Brasil":"🇧🇷","Colômbia":"🇨🇴","Suíça":"🇨🇭","Camarões":"🇨🇲",
+  "França":"🇫🇷","Portugal":"🇵🇹","Bósnia-Herz.":"🇧🇦","Irã":"🇮🇷",
+  "Espanha":"🇪🇸","Croácia":"🇭🇷","Nigéria":"🇳🇬","Tailândia":"🇹🇭",
+  "Inglaterra":"🏴󠁧󠁢󠁥󠁮󠁧󠁿","Holanda":"🇳🇱","Senegal":"🇸🇳","Arábia Saudita":"🇸🇦",
+  "Japão":"🇯🇵","Sérvia":"🇷🇸","Costa do Marfim":"🇨🇮","Rep. Dominicana":"🇩🇴",
+  "Ucrânia":"🇺🇦","Áustria":"🇦🇹","Costa Rica":"🇨🇷","Gana":"🇬🇭",
+};
+
+function gerarJogos() {
+  const jogos = []; let id = 1;
+  const base = new Date("2026-06-11");
+  let dia = 0;
+  const hrs = ["12:00","15:00","18:00","21:00"];
+  const estadios = ["MetLife Stadium, NJ","AT&T Stadium, Dallas","SoFi Stadium, LA",
+    "Levi's Stadium, SF","Arrowhead Stadium, KC","Rose Bowl, Pasadena",
+    "Mercedes-Benz Stadium, Atlanta","Gillette Stadium, Boston",
+    "Lincoln Financial Field, Philadelphia","Empower Field, Denver",
+    "Lumen Field, Seattle","Estadio Azteca, México","Estadio BBVA, Monterrey",
+    "Estadio Akron, Guadalajara","BC Place, Vancouver","BMO Field, Toronto"];
+  Object.entries(GRUPOS).forEach(([g,ts]) => {
+    [[0,1],[2,3],[0,2],[1,3],[0,3],[1,2]].forEach(([a,b]) => {
+      const d = new Date(base); d.setDate(d.getDate()+dia);
+      jogos.push({id,grupo:g,timeCasa:ts[a],timeFora:ts[b],
+        data:d.toLocaleDateString("pt-BR"),hora:hrs[id%4],
+        estadio:estadios[id%estadios.length],
+        golsCasa:null,golsFora:null,status:"pendente"});
+      id++; dia=(dia+1)%12;
+    });
+  });
+  return jogos;
+}
+
+function calcPts(pal, jogo) {
+  if (jogo.golsCasa===null||!pal) return null;
+  if (pal.golsCasa===jogo.golsCasa&&pal.golsFora===jogo.golsFora) return 3;
+  const vR=jogo.golsCasa>jogo.golsFora?"c":jogo.golsCasa<jogo.golsFora?"f":"e";
+  const vP=pal.golsCasa>pal.golsFora?"c":pal.golsCasa<pal.golsFora?"f":"e";
+  return vR===vP?1:0;
+}
+
+function avatarBg(n) {
+  const cols=["#1a5c2e","#1565c0","#6a1b9a","#ad1457","#e65100","#00695c","#4527a0"];
+  let h=0; for(let i=0;i<(n||"").length;i++) h=(n||"").charCodeAt(i)+((h<<5)-h);
+  return cols[Math.abs(h)%cols.length];
+}
+function avHtml(nome,size,fs) {
+  const bg=avatarBg(nome||"?");
+  const ini=(nome||"?").split(" ").map(p=>p[0]).join("").toUpperCase().slice(0,2);
+  return `<div class="av" style="width:${size}px;height:${size}px;background:${bg};font-size:${fs}px">${ini}</div>`;
+}
+function flag(t,s){ return `<span style="font-size:${s||20}px">${FLAGS[t]||"🏳️"}</span>`; }
+function tag(txt,tipo){ return `<span class="tag tag-${tipo||"gray"}">${txt}</span>`; }
+
+// ── ESTADO ────────────────────────────────────────────────────
+let STATE = {
+  usuario:null, usuarios:{}, jogos:{}, palpites:{},
+  pagina:"login", grupoAtivo:"A", adminAba:"jogos",
+  palTemp:{}, aba:"login"
+};
+
+// ── FIREBASE HELPERS ──────────────────────────────────────────
+async function fbGet(path){ const s=await get(ref(db,path)); return s.exists()?s.val():null; }
+async function fbSet(path,val){ await set(ref(db,path),val); }
+async function fbUpdate(path,val){ await update(ref(db,path),val); }
+
+// ── INIT ──────────────────────────────────────────────────────
+async function init() {
+  // Carregar ou criar jogos
+  let jogos = await fbGet("jogos");
+  if (!jogos) {
+    jogos = {};
+    gerarJogos().forEach(j=>{ jogos[j.id]=j; });
+    await fbSet("jogos", jogos);
+  }
+  STATE.jogos = jogos;
+
+  // Carregar usuários
+  STATE.usuarios = await fbGet("usuarios") || {};
+
+  // Criar admin padrão se não existir
+  if (!Object.values(STATE.usuarios).find(u=>u.username==="admin")) {
+    const id = "admin";
+    STATE.usuarios[id] = {id,nome:"Admin",username:"admin",senha:"admin123",isAdmin:true};
+    await fbSet("usuarios/"+id, STATE.usuarios[id]);
+  }
+
+  // Carregar palpites
+  STATE.palpites = await fbGet("palpites") || {};
+
+  // Checar sessão salva
+  const sess = localStorage.getItem("bolao_user");
+  if (sess) {
+    const u = STATE.usuarios[sess];
+    if (u) STATE.usuario = u;
+  }
+
+  document.getElementById("loading").style.display="none";
+  document.getElementById("app").style.display="block";
+  render();
+
+  // Listener em tempo real
+  onValue(ref(db,"jogos"), snap=>{ if(snap.exists()){STATE.jogos=snap.val();render();} });
+  onValue(ref(db,"palpites"), snap=>{ if(snap.exists()){STATE.palpites=snap.val();render();} });
+  onValue(ref(db,"usuarios"), snap=>{ if(snap.exists()){STATE.usuarios=snap.val();render();} });
+}
+
+// ── HELPERS ───────────────────────────────────────────────────
+function toast(msg,tipo) {
+  const el=document.getElementById("toast");
+  if(!el)return;
+  el.textContent=msg;
+  el.style.background=tipo==="err"?"#c62828":"#1a5c2e";
+  el.style.display="block";
+  clearTimeout(window._toastT);
+  window._toastT=setTimeout(()=>el.style.display="none",3000);
+}
+
+function jogosArr(){ return Object.values(STATE.jogos).sort((a,b)=>a.id-b.id); }
+function usuariosArr(){ return Object.values(STATE.usuarios); }
+function getPal(jId){ return (STATE.palpites[STATE.usuario?.id]||{})[jId]||null; }
+
+function getRanking() {
+  return usuariosArr().map(u=>{
+    const meus=STATE.palpites[u.id]||{};
+    let total=0,acertos=0,exatos=0;
+    jogosArr().forEach(j=>{
+      if(j.golsCasa===null||j.golsCasa===undefined) return;
+      const p=meus[j.id]; if(!p) return;
+      const pts=calcPts(p,j);
+      if(pts>0){total+=pts;acertos++;}
+      if(pts===3) exatos++;
+    });
+    return {...u,total,acertos,exatos};
+  }).sort((a,b)=>b.total-a.total||b.acertos-a.acertos||a.nome.localeCompare(b.nome));
+}
+
+// ── RENDER ────────────────────────────────────────────────────
+function render() {
+  const app=document.getElementById("app");
+  if(!app)return;
+
+  const {usuario,pagina,grupoAtivo,aba,adminAba}=STATE;
+  const ranking=getRanking();
+  const myData=ranking.find(r=>r.id===usuario?.id)||{total:0,acertos:0,exatos:0};
+  const myRank=ranking.findIndex(r=>r.id===usuario?.id)+1;
+  const todosJogos=jogosArr();
+  const encerrados=todosJogos.filter(j=>j.status==="encerrado");
+  const proxJogos=todosJogos.filter(j=>j.status==="pendente").slice(0,4);
+
+  // LOGIN
+  if(!usuario) {
+    app.innerHTML=`
+    <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f3f4f6;padding:1rem">
+      <div class="card" style="width:100%;max-width:400px">
+        <div style="text-align:center;margin-bottom:1.5rem">
+          <div style="font-size:44px;margin-bottom:8px">🏆</div>
+          <h1 style="font-size:22px;font-weight:500;margin-bottom:4px">Bolão Copa 2026</h1>
+          <p style="font-size:13px;color:#555">FIFA World Cup — EUA · México · Canadá</p>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:1.25rem">
+          <button onclick="setAba('login')" style="flex:1;padding:7px;border-radius:8px;border:1px solid ${aba==='login'?'#d1d5db':'transparent'};background:${aba==='login'?'#f3f4f6':'transparent'};font-weight:${aba==='login'?500:400}">Entrar</button>
+          <button onclick="setAba('cadastro')" style="flex:1;padding:7px;border-radius:8px;border:1px solid ${aba==='cadastro'?'#d1d5db':'transparent'};background:${aba==='cadastro'?'#f3f4f6':'transparent'};font-weight:${aba==='cadastro'?500:400}">Criar conta</button>
+        </div>
+        <div id="login-erro" style="color:#dc2626;font-size:13px;margin-bottom:8px;display:none"></div>
+        ${aba==='login'?`
+          <label style="font-size:12px;color:#555">Usuário</label>
+          <input id="l-user" placeholder="Seu usuário" style="margin-top:4px"/>
+          <label style="font-size:12px;color:#555">Senha</label>
+          <input id="l-senha" type="password" placeholder="Sua senha" style="margin-top:4px" onkeydown="if(event.key==='Enter')doLogin()"/>
+          <button class="btn-p" style="width:100%;padding:10px;margin-top:4px" onclick="doLogin()">Entrar</button>
+        `:`
+          <label style="font-size:12px;color:#555">Nome completo</label>
+          <input id="c-nome" placeholder="Seu nome" style="margin-top:4px"/>
+          <label style="font-size:12px;color:#555">Nome de usuário</label>
+          <input id="c-user" placeholder="ex: joao_silva" style="margin-top:4px"/>
+          <label style="font-size:12px;color:#555">Senha</label>
+          <input id="c-senha" type="password" placeholder="Mínimo 4 caracteres" style="margin-top:4px"/>
+          <label style="font-size:12px;color:#555">Confirmar senha</label>
+          <input id="c-senha2" type="password" placeholder="Repita a senha" style="margin-top:4px" onkeydown="if(event.key==='Enter')doCadastro()"/>
+          <button class="btn-p" style="width:100%;padding:10px;margin-top:4px" onclick="doCadastro()">Criar conta</button>
+        `}
+      </div>
+    </div>
+    <div id="toast" class="toast" style="display:none"></div>`;
+    return;
+  }
+
+  // NAV
+  const pages=[["dashboard","🏠 Início"],["palpites","✏️ Palpites"],["ranking","🏅 Ranking"]];
+  if(usuario.isAdmin) pages.push(["admin","⚙️ Admin"]);
+  pages.push(["perfil","👤 Perfil"]);
+  const navBtns=pages.map(([p,l])=>`<button class="nav-btn ${pagina===p?'active':''}" onclick="ir('${p}')">${l}</button>`).join("");
+
+  // DASHBOARD
+  let content="";
+  if(pagina==="dashboard"){
+    const podCores=["#f59e0b","#9ca3af","#b45309","#1a5c2e","#1a5c2e"];
+    content=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:10px">
+      <div style="display:flex;align-items:center;gap:12px">
+        ${avHtml(usuario.nome,44,16)}
+        <div>
+          <h2 style="font-size:18px;font-weight:500;margin:0">Olá, ${usuario.nome.split(" ")[0]}!</h2>
+          <p style="font-size:13px;color:#555;margin:2px 0 0">Copa do Mundo FIFA 2026</p>
+        </div>
+      </div>
+      <button class="btn-s" onclick="doLogout()">Sair</button>
+    </div>
+    <div class="grid4">
+      ${[["#"+myRank,"Minha posição"],[myData.total+" pts","Pontuação"],[myData.acertos,"Acertos"],[encerrados.length+"/"+todosJogos.length,"Jogos"]].map(([v,l])=>`
+        <div class="stat-box"><div class="val">${v}</div><div class="lbl">${l}</div></div>`).join("")}
+    </div>
+    <div class="grid2">
+      <div class="card">
+        <h3 style="font-size:15px;font-weight:500;margin:0 0 10px">🗓️ Próximos jogos</h3>
+        ${proxJogos.map(j=>`
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #e5e7eb;font-size:13px">
+            ${flag(j.timeCasa,16)} <span style="flex:1">${j.timeCasa} × ${j.timeFora}</span> ${flag(j.timeFora,16)}
+            <span style="font-size:11px;color:#555">${j.data}</span>
+          </div>`).join("")}
+        <button class="btn-s" style="margin-top:10px;width:100%" onclick="ir('palpites')">Ver todos →</button>
+      </div>
+      <div class="card">
+        <h3 style="font-size:15px;font-weight:500;margin:0 0 10px;display:flex;justify-content:space-between">
+          <span>🏆 Liderança</span>
+          <span style="font-size:11px;font-weight:400;color:#555">${usuariosArr().length} participantes</span>
+        </h3>
+        ${ranking.slice(0,5).map((u,i)=>{
+          const lider=ranking[0]?ranking[0].total:1;
+          const pct=lider>0?Math.round((u.total/lider)*100):0;
+          const isMe=u.id===usuario.id;
+          return `<div style="padding:7px 8px;border-radius:8px;margin-bottom:5px;background:${isMe?'#f0fdf4':'transparent'};border:1px solid ${isMe?'#86efac':'#e5e7eb'}">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
+              <span style="font-size:16px;width:22px;text-align:center">${i===0?"🥇":i===1?"🥈":i===2?"🥉":(i+1)+"."}</span>
+              ${avHtml(u.nome,22,9)}
+              <span style="flex:1;font-size:13px;font-weight:${isMe?500:400}">${u.nome}${isMe?" 👈":""}</span>
+              <span style="font-size:13px;font-weight:500;color:${podCores[i]||'#1a5c2e'}">${u.total} pts</span>
+            </div>
+            <div style="height:4px;background:#e5e7eb;border-radius:99px">
+              <div style="height:100%;width:${pct}%;background:${podCores[i]||'#1a5c2e'};border-radius:99px"></div>
+            </div>
+          </div>`;
+        }).join("")}
+        <button class="btn-s" style="margin-top:6px;width:100%" onclick="ir('ranking')">Ranking completo →</button>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h3 style="font-size:15px;font-weight:500;margin:0 0 10px">📋 Pontuação</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px">
+        ${[["🎯 Placar cravado","3 pontos"],["✅ Acerto do resultado","1 ponto"],["❌ Erro","0 pontos"]].map(([t,v])=>`
+          <div style="padding:10px 12px;background:#f3f4f6;border-radius:8px;font-size:13px">
+            <div style="font-weight:500">${t}</div><div style="color:#1a5c2e;font-weight:500">${v}</div>
+          </div>`).join("")}
+      </div>
+    </div>`;
+  }
+
+  // PALPITES
+  else if(pagina==="palpites"){
+    const jogosFiltrados=todosJogos.filter(j=>j.grupo===grupoAtivo);
+    const grpBtns=Object.keys(GRUPOS).map(g=>`
+      <button class="grupo-btn" style="background:${grupoAtivo===g?'#1a5c2e':'#e5e7eb'};color:${grupoAtivo===g?'#fff':'#111'}"
+        onclick="setGrupo('${g}')">Grupo ${g}</button>`).join("");
+    const jogosHtml=jogosFiltrados.map(j=>{
+      const pal=getPal(j.id), enc=j.status==="encerrado";
+      const pts=pal&&enc?calcPts(pal,j):null;
+      const tmp=STATE.palTemp[j.id]||{};
+      const vC=tmp.golsCasa!==undefined?tmp.golsCasa:(pal?pal.golsCasa:"");
+      const vF=tmp.golsFora!==undefined?tmp.golsFora:(pal?pal.golsFora:"");
+      return `<div class="jogo-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px">
+          <span style="font-size:11px;color:#555">${j.data} ${j.hora} · ${j.estadio}</span>
+          <div>${tag(enc?"Encerrado":"Aberto",enc?"green":"orange")}${pts!==null?" "+tag(pts+" pts",pts===3?"green":pts===1?"blue":"gray"):""}</div>
+        </div>
+        <div class="jogo-times">
+          <div style="flex:1;text-align:center">${flag(j.timeCasa,28)}<div style="font-size:12px;margin-top:4px">${j.timeCasa}</div></div>
+          <div style="display:flex;align-items:center;gap:6px">
+            ${enc
+              ?`<span style="font-size:22px;font-weight:500;color:#555">${j.golsCasa} × ${j.golsFora}</span>`
+              :`<input class="gol-input" type="number" min="0" max="20" value="${vC}" oninput="setPalTemp(${j.id},'casa',this.value)"/>
+               <span style="font-size:14px;color:#555">×</span>
+               <input class="gol-input" type="number" min="0" max="20" value="${vF}" oninput="setPalTemp(${j.id},'fora',this.value)"/>`}
+          </div>
+          <div style="flex:1;text-align:center">${flag(j.timeFora,28)}<div style="font-size:12px;margin-top:4px">${j.timeFora}</div></div>
+        </div>
+        ${!enc?`<div style="text-align:center"><button class="btn-p" style="padding:6px 20px;font-size:13px" onclick="salvarPalpite(${j.id})">
+          ${pal?"Atualizar palpite":"Salvar palpite"}</button></div>`:""}
+        ${enc&&pal?`<div style="text-align:center;font-size:12px;color:#555;margin-top:4px">Seu palpite: ${pal.golsCasa} × ${pal.golsFora}</div>`:""}
+      </div>`;
+    }).join("");
+    content=`
+    <h2 style="font-size:18px;font-weight:500;margin:0 0 1rem">✏️ Meus palpites</h2>
+    <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:1.25rem">${grpBtns}</div>
+    ${jogosHtml}`;
+  }
+
+  // RANKING
+  else if(pagina==="ranking"){
+    content=`
+    <h2 style="font-size:18px;font-weight:500;margin:0 0 1rem">🏅 Classificação — ${usuariosArr().length} participantes</h2>
+    <div class="card">
+      <div style="display:grid;grid-template-columns:36px 1fr 54px 54px 54px;gap:6px;padding:6px 10px;font-size:11px;color:#555;font-weight:500;margin-bottom:4px">
+        <span>#</span><span>Participante</span><span style="text-align:right">Pts</span><span style="text-align:right">Acertos</span><span style="text-align:right">Crav.</span>
+      </div>
+      ${ranking.map((u,i)=>{
+        const isMe=u.id===usuario.id;
+        return `<div class="rank-row" style="background:${isMe?'#f0fdf4':i%2===0?'#f9fafb':'transparent'};border:1px solid ${isMe?'#86efac':'transparent'}">
+          <span style="text-align:center;font-size:15px">${i===0?"🥇":i===1?"🥈":i===2?"🥉":i+1}</span>
+          <div style="display:flex;align-items:center;gap:7px">
+            ${avHtml(u.nome,26,10)}
+            <span style="font-size:13px;font-weight:${isMe?500:400};color:${isMe?'#1a5c2e':'inherit'}">${u.nome}${isMe?" (você)":""}</span>
+          </div>
+          <span style="text-align:right;font-weight:500;font-size:13px">${u.total}</span>
+          <span style="text-align:right;color:#555;font-size:13px">${u.acertos}</span>
+          <span style="text-align:right;color:#555;font-size:13px">${u.exatos}</span>
+        </div>`;
+      }).join("")}
+    </div>`;
+  }
+
+  // PERFIL
+  else if(pagina==="perfil"){
+    content=`
+    <h2 style="font-size:18px;font-weight:500;margin:0 0 1rem">👤 Meu perfil</h2>
+    <div class="grid2">
+      <div class="card">
+        <h3 style="font-size:15px;font-weight:500;margin:0 0 12px">Editar dados</h3>
+        <label style="font-size:12px;color:#555">Nome</label>
+        <input id="p-nome" value="${usuario.nome}" style="margin-top:4px"/>
+        <label style="font-size:12px;color:#555">Usuário</label>
+        <input value="${usuario.username}" disabled style="margin-top:4px;opacity:.6"/>
+        <label style="font-size:12px;color:#555">Nova senha (opcional)</label>
+        <input id="p-senha" type="password" placeholder="Mínimo 4 caracteres" style="margin-top:4px"/>
+        <button class="btn-p" onclick="salvarPerfil()">Salvar</button>
+      </div>
+      <div class="card">
+        <h3 style="font-size:15px;font-weight:500;margin:0 0 12px">Meu desempenho</h3>
+        ${[["Posição","#"+myRank+" de "+usuariosArr().length],["Pontuação",myData.total+" pts"],["Acertos",myData.acertos],["Cravados",myData.exatos],["Palpites enviados",Object.keys(STATE.palpites[usuario.id]||{}).length]].map(([l,v])=>`
+          <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #e5e7eb;font-size:13px">
+            <span style="color:#555">${l}</span><span style="font-weight:500">${v}</span>
+          </div>`).join("")}
+      </div>
+    </div>`;
+  }
+
+  // ADMIN
+  else if(pagina==="admin"&&usuario.isAdmin){
+    const abaBtns=["jogos","usuarios"].map(a=>`
+      <button class="grupo-btn" style="background:${adminAba===a?'#1a5c2e':'#e5e7eb'};color:${adminAba===a?'#fff':'#111'}"
+        onclick="setAdminAba('${a}')">${a==="jogos"?"Resultados":"Usuários"}</button>`).join("");
+    let abaContent="";
+    if(adminAba==="jogos"){
+      const pendentes=todosJogos.filter(j=>j.status==="pendente");
+      const opts=pendentes.map(j=>`<option value="${j.id}">${j.timeCasa} × ${j.timeFora} (${j.data} — Grupo ${j.grupo})</option>`).join("");
+      abaContent=`
+        <h3 style="font-size:15px;font-weight:500;margin:0 0 8px">Lançar resultado oficial</h3>
+        <select id="adm-jogo" style="margin-bottom:10px"><option value="">— Selecione um jogo —</option>${opts}</select>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px">
+          <input id="adm-gc" type="number" min="0" max="20" placeholder="Gols casa" style="flex:1"/>
+          <span style="font-weight:500">×</span>
+          <input id="adm-gf" type="number" min="0" max="20" placeholder="Gols fora" style="flex:1"/>
+          <button class="btn-p" onclick="lancarResultado()">Confirmar</button>
+        </div>
+        <h3 style="font-size:15px;font-weight:500;margin:12px 0 8px">Resultados lançados (${encerrados.length})</h3>
+        ${encerrados.length===0?'<p style="font-size:13px;color:#555">Nenhum ainda.</p>':
+          encerrados.map(j=>`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #e5e7eb;font-size:13px">
+            ${flag(j.timeCasa,16)} ${j.timeCasa} ${j.golsCasa} × ${j.golsFora} ${j.timeFora} ${flag(j.timeFora,16)}
+            <span style="margin-left:auto">${tag("Encerrado","green")}</span>
+          </div>`).join("")}`;
+    } else {
+      abaContent=`
+        <h3 style="font-size:15px;font-weight:500;margin:0 0 10px">Participantes (${usuariosArr().length})</h3>
+        ${ranking.map((u,i)=>`
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #e5e7eb">
+            <span style="font-size:14px;width:24px;text-align:center">${i===0?"🥇":i===1?"🥈":i===2?"🥉":i+1}</span>
+            ${avHtml(u.nome,28,11)}
+            <div style="flex:1">
+              <div style="font-size:13px;font-weight:500">${u.nome} ${u.isAdmin?tag("Admin","blue"):""}</div>
+              <div style="font-size:11px;color:#555">@${u.username}</div>
+            </div>
+            <div style="text-align:right;font-size:13px">
+              <div style="font-weight:500">${u.total} pts</div>
+              <div style="font-size:11px;color:#555">${u.acertos} acertos</div>
+            </div>
+          </div>`).join("")}`;
+    }
+    content=`
+    <h2 style="font-size:18px;font-weight:500;margin:0 0 1rem">⚙️ Painel administrativo</h2>
+    <div style="display:flex;gap:6px;margin-bottom:1.25rem;flex-wrap:wrap">${abaBtns}</div>
+    <div class="card">${abaContent}</div>`;
+  }
+
+  app.innerHTML=`
+  <nav>
+    <div style="display:flex;align-items:center;gap:8px;cursor:pointer" onclick="ir('dashboard')">
+      <span style="font-weight:500;font-size:15px"><span style="color:#1a5c2e">Bolão</span> Copa 2026 🏆</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:2px;flex-wrap:wrap">${navBtns}
+      <div style="width:1px;height:20px;background:#e5e7eb;margin:0 4px"></div>
+      ${avHtml(usuario.nome,28,11)}
+    </div>
+  </nav>
+  <main>${content}</main>
+  <div id="toast" class="toast" style="display:none"></div>`;
+}
+
+// ── AÇÕES ─────────────────────────────────────────────────────
+window.setAba=function(a){ STATE.aba=a; render(); }
+window.ir=function(p){ STATE.pagina=p; render(); }
+window.setGrupo=function(g){ STATE.grupoAtivo=g; render(); }
+window.setAdminAba=function(a){ STATE.adminAba=a; render(); }
+
+window.doLogin=async function(){
+  const user=document.getElementById("l-user")?.value.trim();
+  const senha=document.getElementById("l-senha")?.value;
+  const u=Object.values(STATE.usuarios).find(x=>x.username===user&&x.senha===senha);
+  if(!u){ document.getElementById("login-erro").style.display="block"; document.getElementById("login-erro").textContent="Usuário ou senha incorretos."; return; }
+  STATE.usuario=u; localStorage.setItem("bolao_user",u.id);
+  STATE.pagina="dashboard"; render();
+}
+
+window.doCadastro=async function(){
+  const nome=document.getElementById("c-nome")?.value.trim();
+  const user=document.getElementById("c-user")?.value.trim().toLowerCase().replace(/\s/g,"_");
+  const senha=document.getElementById("c-senha")?.value;
+  const senha2=document.getElementById("c-senha2")?.value;
+  const el=document.getElementById("login-erro");
+  if(!nome||!user||!senha){el.style.display="block";el.textContent="Preencha todos os campos.";return;}
+  if(senha!==senha2){el.style.display="block";el.textContent="As senhas não coincidem.";return;}
+  if(senha.length<4){el.style.display="block";el.textContent="Senha deve ter ao menos 4 caracteres.";return;}
+  if(Object.values(STATE.usuarios).find(x=>x.username===user)){el.style.display="block";el.textContent="Nome de usuário já existe.";return;}
+  const id="u_"+Date.now();
+  const novo={id,nome,username:user,senha,isAdmin:false};
+  await fbSet("usuarios/"+id,novo);
+  STATE.usuario=novo; localStorage.setItem("bolao_user",id);
+  STATE.pagina="dashboard"; render();
+}
+
+window.doLogout=function(){
+  STATE.usuario=null; localStorage.removeItem("bolao_user");
+  STATE.pagina="login"; render();
+}
+
+window.setPalTemp=function(jId,lado,val){
+  if(!STATE.palTemp[jId]) STATE.palTemp[jId]={};
+  STATE.palTemp[jId][lado==="casa"?"golsCasa":"golsFora"]=parseInt(val)||0;
+}
+
+window.salvarPalpite=async function(jId){
+  const tmp=STATE.palTemp[jId];
+  if(!tmp||tmp.golsCasa===undefined||tmp.golsFora===undefined){toast("Preencha o placar!","err");return;}
+  const uid=STATE.usuario.id;
+  await fbSet(`palpites/${uid}/${jId}`,{golsCasa:tmp.golsCasa,golsFora:tmp.golsFora});
+  toast("Palpite salvo!");
+}
+
+window.lancarResultado=async function(){
+  const jId=parseInt(document.getElementById("adm-jogo")?.value);
+  const gC=parseInt(document.getElementById("adm-gc")?.value);
+  const gF=parseInt(document.getElementById("adm-gf")?.value);
+  if(!jId||isNaN(gC)||isNaN(gF)){toast("Selecione um jogo e preencha o placar.","err");return;}
+  await fbUpdate(`jogos/${jId}`,{golsCasa:gC,golsFora:gF,status:"encerrado"});
+  toast("Resultado lançado!");
+}
+
+window.salvarPerfil=async function(){
+  const nome=document.getElementById("p-nome")?.value.trim();
+  const senha=document.getElementById("p-senha")?.value;
+  if(!nome){toast("Nome não pode estar vazio.","err");return;}
+  const upd={nome};
+  if(senha){if(senha.length<4){toast("Senha muito curta.","err");return;} upd.senha=senha;}
+  const uid=STATE.usuario.id;
+  await fbUpdate(`usuarios/${uid}`,upd);
+  STATE.usuario={...STATE.usuario,...upd};
+  toast("Perfil atualizado!");
+}
+
+init();
+</script>
+</body>
+</html>

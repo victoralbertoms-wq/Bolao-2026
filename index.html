@@ -18,7 +18,7 @@
     nav{background:#fff;border-bottom:1px solid #e5e7eb;padding:0 1rem;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:4px}
     .nav-btn{background:transparent;border:none;padding:6px 10px;font-size:13px;color:#555;border-radius:8px}
     .nav-btn.active{background:#f3f4f6;color:#111;font-weight:500}
-    main{max-width:900px;margin:0 auto;padding:1.5rem 1rem}
+    main{max-width:1100px;margin:0 auto;padding:1.5rem 1rem}
     .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
     .grid4{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:1.5rem}
     .stat-box{background:#f0fdf4;border-radius:10px;padding:1rem;text-align:center}
@@ -37,6 +37,7 @@
     @keyframes spin{to{transform:rotate(360deg)}}
     .import-box{background:#f0fdf4;border:1px solid #86efac;border-radius:12px;padding:1rem;margin-bottom:1rem}
     .mono{font-family:monospace;font-size:12px;background:#f3f4f6;padding:8px 10px;border-radius:8px;color:#555;margin-bottom:10px;white-space:pre}
+    @media(max-width:700px){.rank-side{grid-template-columns:1fr!important}}
   </style>
 </head>
 <body>
@@ -49,17 +50,16 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, set, get, onValue, update }
-  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, set, get, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCUrGonXjFoTKdu3BTemjfcONiDL_YLO6M",
-  authDomain: "bolao-cartorio.firebaseapp.com",
-  databaseURL: "https://bolao-cartorio-default-rtdb.firebaseio.com",
-  projectId: "bolao-cartorio",
-  storageBucket: "bolao-cartorio.firebasestorage.app",
-  messagingSenderId: "881858825480",
-  appId: "1:881858825480:web:42accf5c8b37b2559430bd"
+  apiKey:"AIzaSyCUrGonXjFoTKdu3BTemjfcONiDL_YLO6M",
+  authDomain:"bolao-cartorio.firebaseapp.com",
+  databaseURL:"https://bolao-cartorio-default-rtdb.firebaseio.com",
+  projectId:"bolao-cartorio",
+  storageBucket:"bolao-cartorio.firebasestorage.app",
+  messagingSenderId:"881858825480",
+  appId:"1:881858825480:web:42accf5c8b37b2559430bd"
 };
 const fbApp = initializeApp(firebaseConfig);
 const db = getDatabase(fbApp);
@@ -162,7 +162,11 @@ function avHtml(nome,size,fs){
 function flag(t,s){return `<span style="font-size:${s||20}px">${FLAGS[t]||"🏳️"}</span>`;}
 function tag(txt,tipo){return `<span class="tag tag-${tipo||"gray"}">${txt}</span>`;}
 
-let S={usuario:null,usuarios:{},jogos:{},palpites:{},pagina:"login",grupoAtivo:"A",adminAba:"jogos",palTemp:{},aba:"login",importAberto:false};
+let S={
+  usuario:null,usuarios:{},jogos:{},palpites:{},
+  pagina:"login",grupoAtivo:"A",adminAba:"jogos",
+  palTemp:{},aba:"login",importAberto:false
+};
 
 async function fbGet(path){const snap=await get(ref(db,path));return snap.exists()?snap.val():null;}
 async function fbSet(path,val){await set(ref(db,path),val);}
@@ -192,7 +196,7 @@ async function init(){
     onValue(ref(db,"palpites"),snap=>{if(snap.exists()){S.palpites=snap.val();render();}});
     onValue(ref(db,"usuarios"),snap=>{if(snap.exists()){S.usuarios=snap.val();render();}});
   }catch(err){
-    document.getElementById("loading").innerHTML=`<p style="color:#dc2626;font-size:14px">Erro ao conectar: ${err.message}</p>`;
+    document.getElementById("loading").innerHTML=`<p style="color:#dc2626;padding:2rem;text-align:center">Erro ao conectar: ${err.message}</p>`;
   }
 }
 
@@ -204,19 +208,36 @@ function toast(msg,tipo){
 function jogosArr(){return Object.values(S.jogos).sort((a,b)=>a.id-b.id);}
 function usuariosArr(){return Object.values(S.usuarios);}
 function getPal(jId){return (S.palpites[S.usuario?.id]||{})[jId]||null;}
-
 function getRanking(){
   return usuariosArr().map(u=>{
     const meus=S.palpites[u.id]||{};
     let total=0,acertos=0,exatos=0;
     jogosArr().forEach(j=>{
       if(j.gols1===null||j.gols1===undefined) return;
-      const p=meus[j.id];if(!p) return;
+      const p=meus[j.id];if(!p)return;
       const pts=calcPts(p,j);
-      if(pts>0){total+=pts;acertos++;}if(pts===3)exatos++;
+      if(pts>0){total+=pts;acertos++;}
+      if(pts===3)exatos++;
     });
     return {...u,total,acertos,exatos};
   }).sort((a,b)=>b.total-a.total||b.acertos-a.acertos||a.nome.localeCompare(b.nome));
+}
+
+function renderRankingTable(ranking,usuario){
+  return `
+  <div style="display:grid;grid-template-columns:36px 1fr 54px 54px 54px;gap:6px;padding:6px 10px;font-size:11px;color:#555;font-weight:500;margin-bottom:4px">
+    <span>#</span><span>Participante</span><span style="text-align:right">Pts</span><span style="text-align:right">Acertos</span><span style="text-align:right">Crav.</span>
+  </div>
+  ${ranking.map((u,i)=>{
+    const isMe=usuario&&u.id===usuario.id;
+    return `<div class="rank-row" style="background:${isMe?'#f0fdf4':i%2===0?'#f9fafb':'transparent'};border:1px solid ${isMe?'#86efac':'transparent'}">
+      <span style="text-align:center;font-size:15px">${i===0?"🥇":i===1?"🥈":i===2?"🥉":i+1}</span>
+      <div style="display:flex;align-items:center;gap:7px">${avHtml(u.nome,26,10)}<span style="font-size:13px;font-weight:${isMe?500:400};color:${isMe?'#1a5c2e':'inherit'}">${u.nome}${isMe?" (você)":""}</span></div>
+      <span style="text-align:right;font-weight:500;font-size:13px">${u.total}</span>
+      <span style="text-align:right;color:#555;font-size:13px">${u.acertos}</span>
+      <span style="text-align:right;color:#555;font-size:13px">${u.exatos}</span>
+    </div>`;
+  }).join("")}`;
 }
 
 function render(){
@@ -229,11 +250,11 @@ function render(){
   const encerrados=todos.filter(j=>j.status==="encerrado");
   const proxJogos=todos.filter(j=>j.status==="pendente").slice(0,4);
 
-  // ── RANKING PÚBLICO ──
+  // RANKING PÚBLICO
   if(pagina==="ranking-publico"){
     app.innerHTML=`
     <div style="min-height:100vh;background:#f3f4f6;padding:1rem">
-      <div style="max-width:600px;margin:0 auto">
+      <div style="max-width:1100px;margin:0 auto">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:8px">
           <div style="display:flex;align-items:center;gap:8px">
             <span style="font-size:28px">🏆</span>
@@ -244,29 +265,15 @@ function render(){
           </div>
           <button class="btn-p" onclick="ir('login')" style="padding:6px 16px;font-size:13px">Entrar no bolão →</button>
         </div>
-        <div class="card" style="margin-bottom:16px">
-          <div style="display:grid;grid-template-columns:36px 1fr 54px 54px 54px;gap:6px;padding:6px 10px;font-size:11px;color:#555;font-weight:500;margin-bottom:4px">
-            <span>#</span><span>Participante</span><span style="text-align:right">Pts</span><span style="text-align:right">Acertos</span><span style="text-align:right">Crav.</span>
+        <div class="rank-side" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+          <div class="card">
+            <h3 style="font-size:14px;font-weight:500;margin:0 0 10px">🏆 Classificação</h3>
+            ${renderRankingTable(ranking,null)}
           </div>
-          ${ranking.length===0?'<p style="font-size:13px;color:#555;padding:8px">Nenhum participante ainda.</p>':
-          ranking.map((u,i)=>`
-            <div style="display:grid;grid-template-columns:36px 1fr 54px 54px 54px;gap:6px;align-items:center;padding:8px 10px;border-radius:8px;background:${i%2===0?'#f9fafb':'transparent'};margin-bottom:2px">
-              <span style="text-align:center;font-size:15px">${i===0?"🥇":i===1?"🥈":i===2?"🥉":i+1}</span>
-              <div style="display:flex;align-items:center;gap:7px">${avHtml(u.nome,26,10)}<span style="font-size:13px">${u.nome}</span></div>
-              <span style="text-align:right;font-weight:500;font-size:13px;color:${i===0?'#f59e0b':i===1?'#9ca3af':i===2?'#b45309':'#111'}">${u.total}</span>
-              <span style="text-align:right;color:#555;font-size:13px">${u.acertos}</span>
-              <span style="text-align:right;color:#555;font-size:13px">${u.exatos}</span>
-            </div>`).join("")}
-        </div>
-        <div class="card">
-          <h3 style="font-size:14px;font-weight:500;margin:0 0 10px">⚽ Últimos resultados</h3>
-          ${encerrados.length===0?'<p style="font-size:13px;color:#555">Nenhum jogo encerrado ainda.</p>':
-          encerrados.slice(-5).reverse().map(j=>`
-            <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #e5e7eb;font-size:13px">
-              ${flag(j.time1,16)}<span style="flex:1">${j.time1}</span>
-              <span style="font-weight:500;font-size:15px">${j.gols1} × ${j.gols2}</span>
-              <span style="flex:1;text-align:right">${j.time2}</span>${flag(j.time2,16)}
-            </div>`).join("")}
+          <div class="card" style="padding:0;overflow:hidden;position:sticky;top:16px">
+            <div style="padding:12px 16px;border-bottom:1px solid #e5e7eb;font-size:14px;font-weight:500">📊 Grupos da Copa</div>
+            <iframe src="https://widget.api-futebol.com.br/render/widget_3011a7e1604bf850" title="Grupos Copa 2026" style="border:none;width:100%;height:750px;display:block;" referrerpolicy="unsafe-url"></iframe>
+          </div>
         </div>
         <p style="text-align:center;font-size:12px;color:#aaa;margin-top:16px">Atualizado em tempo real · Palpites ocultos até o apito final</p>
       </div>
@@ -275,7 +282,7 @@ function render(){
     return;
   }
 
-  // ── LOGIN ──
+  // LOGIN
   if(!usuario){
     app.innerHTML=`
     <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f3f4f6;padding:1rem">
@@ -316,7 +323,7 @@ function render(){
     return;
   }
 
-  // ── NAVEGAÇÃO ──
+  // NAVEGAÇÃO
   const pages=[["dashboard","🏠 Início"],["palpites","✏️ Palpites"],["ranking","🏅 Ranking"]];
   if(usuario.isAdmin) pages.push(["admin","⚙️ Admin"]);
   pages.push(["perfil","👤 Perfil"]);
@@ -324,7 +331,6 @@ function render(){
 
   let content="";
 
-  // ── DASHBOARD ──
   if(pagina==="dashboard"){
     const pc=["#f59e0b","#9ca3af","#b45309","#1a5c2e","#1a5c2e"];
     content=`
@@ -384,24 +390,19 @@ function render(){
           </div>`).join("")}
       </div>
     </div>`;
-  }
 
-  // ── PALPITES ──
-  else if(pagina==="palpites"){
+  } else if(pagina==="palpites"){
     const filtrados=todos.filter(j=>j.grupo===grupoAtivo);
     const grpBtns=GRUPOS.map(g=>`
-      <button class="grupo-btn" style="background:${grupoAtivo===g?'#1a5c2e':'#e5e7eb'};color:${grupoAtivo===g?'#fff':'#111'}"
-        onclick="setGrupo('${g}')">Grupo ${g}</button>`).join("");
+      <button class="grupo-btn" style="background:${grupoAtivo===g?'#1a5c2e':'#e5e7eb'};color:${grupoAtivo===g?'#fff':'#111'}" onclick="setGrupo('${g}')">Grupo ${g}</button>`).join("");
     const importHtml=importAberto?`
       <div class="import-box">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
           <h3 style="font-size:15px;font-weight:500;margin:0">📥 Importar palpites via planilha</h3>
-          <button class="btn-s" style="padding:4px 10px;font-size:12px" onclick="toggleImport()">✕ Fechar</button>
+          <button class="btn-s" style="padding:4px 10px;font-size:12px" onclick="toggleImport()">✕</button>
         </div>
-        <p style="font-size:13px;color:#555;margin-bottom:10px">
-          Baixe a planilha modelo, preencha <strong>Gols 1</strong> e <strong>Gols 2</strong> e faça o upload.
-        </p>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+        <p style="font-size:13px;color:#555;margin-bottom:10px">Baixe a planilha modelo, preencha <strong>Gols 1</strong> e <strong>Gols 2</strong> e faça o upload.</p>
+        <div style="margin-bottom:10px">
           <a href="https://docs.google.com/spreadsheets/d/1E_47jLIjkXVmaVU4crpMUQ1GcpBMu4fV/export?format=xlsx" target="_blank">
             <button class="btn-p" style="font-size:13px;padding:6px 14px">⬇️ Baixar planilha modelo (.xlsx)</button>
           </a>
@@ -414,8 +415,7 @@ function render(){
         <button class="btn-p" style="font-size:13px;padding:6px 16px" onclick="toggleImport()">📥 Importar palpites via planilha</button>
       </div>`;
     const jogosHtml=filtrados.map(j=>{
-      const pal=getPal(j.id),enc=j.status==="encerrado";
-      const bloqueado=pal&&pal.bloqueado;
+      const pal=getPal(j.id),enc=j.status==="encerrado",bloqueado=pal&&pal.bloqueado;
       const pts=pal&&enc?calcPts(pal,j):null;
       const tmp=S.palTemp[j.id]||{};
       const vC=tmp.gols1!==undefined?tmp.gols1:(pal?pal.gols1:"");
@@ -438,10 +438,9 @@ function render(){
           </div>
           <div style="flex:1;text-align:center">${flag(j.time2,28)}<div style="font-size:12px;margin-top:4px">${j.time2}</div></div>
         </div>
-        ${!enc&&!bloqueado?`<div style="text-align:center"><button class="btn-p" style="padding:6px 20px;font-size:13px" onclick="salvarPalpite(${j.id})">${pal?"Atualizar palpite":"Salvar palpite"}</button></div>`:""}
+        ${!enc&&!bloqueado?`<div style="text-align:center"><button class="btn-p" style="padding:6px 20px;font-size:13px" onclick="salvarPalpite(${j.id})">${pal?"Atualizar":"Salvar palpite"}</button></div>`:""}
         ${enc&&pal?`<div style="text-align:center;font-size:12px;color:#555;margin-top:4px">Seu palpite: ${pal.gols1} × ${pal.gols2}</div>`:""}
-        ${!enc&&!pal?`<div style="text-align:center;font-size:12px;color:#aaa;margin-top:4px">Sem palpite ainda</div>`:""}
-        ${!enc&&pal&&!bloqueado?`<div style="text-align:center;font-size:12px;color:#86efac;margin-top:4px">✓ Palpite registrado</div>`:""}
+        ${!enc&&pal&&!bloqueado?`<div style="text-align:center;font-size:12px;color:#86efac;margin-top:4px">✓ Registrado</div>`:""}
       </div>`;
     }).join("");
     content=`
@@ -449,45 +448,22 @@ function render(){
     ${importHtml}
     <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:1rem">${grpBtns}</div>
     ${jogosHtml}`;
-  }
 
-  // ── RANKING ──
-  else if(pagina==="ranking"){
-    const rankAba=S.rankAba||"bolao";
+  } else if(pagina==="ranking"){
     content=`
     <h2 style="font-size:18px;font-weight:500;margin:0 0 1rem">🏅 Ranking & Grupos</h2>
-    <div style="display:flex;gap:6px;margin-bottom:1rem">
-      <button class="grupo-btn" style="background:${rankAba==='bolao'?'#1a5c2e':'#e5e7eb'};color:${rankAba==='bolao'?'#fff':'#111'}" onclick="setRankAba('bolao')">🏆 Bolão</button>
-      <button class="grupo-btn" style="background:${rankAba==='grupos'?'#1a5c2e':'#e5e7eb'};color:${rankAba==='grupos'?'#fff':'#111'}" onclick="setRankAba('grupos')">📊 Grupos da Copa</button>
-    </div>
-    ${rankAba==='bolao'?`
-    <div class="card">
-      <div style="display:grid;grid-template-columns:36px 1fr 54px 54px 54px;gap:6px;padding:6px 10px;font-size:11px;color:#555;font-weight:500;margin-bottom:4px">
-        <span>#</span><span>Participante</span><span style="text-align:right">Pts</span><span style="text-align:right">Acertos</span><span style="text-align:right">Crav.</span>
+    <div class="rank-side" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+      <div class="card">
+        <h3 style="font-size:14px;font-weight:500;margin:0 0 10px">🏆 Bolão — ${usuariosArr().length} participantes</h3>
+        ${renderRankingTable(ranking,usuario)}
       </div>
-      ${ranking.map((u,i)=>{
-        const isMe=u.id===usuario.id;
-        return `<div class="rank-row" style="background:${isMe?'#f0fdf4':i%2===0?'#f9fafb':'transparent'};border:1px solid ${isMe?'#86efac':'transparent'}">
-          <span style="text-align:center;font-size:15px">${i===0?"🥇":i===1?"🥈":i===2?"🥉":i+1}</span>
-          <div style="display:flex;align-items:center;gap:7px">${avHtml(u.nome,26,10)}<span style="font-size:13px;font-weight:${isMe?500:400};color:${isMe?'#1a5c2e':'inherit'}">${u.nome}${isMe?" (você)":""}</span></div>
-          <span style="text-align:right;font-weight:500;font-size:13px">${u.total}</span>
-          <span style="text-align:right;color:#555;font-size:13px">${u.acertos}</span>
-          <span style="text-align:right;color:#555;font-size:13px">${u.exatos}</span>
-        </div>`;
-      }).join("")}
-    </div>`:`
-    <div class="card" style="padding:0;overflow:hidden">
-      <iframe src="https://widget.api-futebol.com.br/render/widget_3011a7e1604bf850"
-        title="Grupos Copa 2026"
-        style="border:none;width:100%;height:800px;display:block;"
-        referrerpolicy="unsafe-url">
-      </iframe>
-    </div>`}`;
-  }
-  }
+      <div class="card" style="padding:0;overflow:hidden;position:sticky;top:60px">
+        <div style="padding:12px 16px;border-bottom:1px solid #e5e7eb;font-size:14px;font-weight:500">📊 Grupos da Copa</div>
+        <iframe src="https://widget.api-futebol.com.br/render/widget_3011a7e1604bf850" title="Grupos Copa 2026" style="border:none;width:100%;height:750px;display:block;" referrerpolicy="unsafe-url"></iframe>
+      </div>
+    </div>`;
 
-  // ── PERFIL ──
-  else if(pagina==="perfil"){
+  } else if(pagina==="perfil"){
     content=`
     <h2 style="font-size:18px;font-weight:500;margin:0 0 1rem">👤 Meu perfil</h2>
     <div class="grid2">
@@ -509,13 +485,10 @@ function render(){
           </div>`).join("")}
       </div>
     </div>`;
-  }
 
-  // ── ADMIN ──
-  else if(pagina==="admin"&&usuario.isAdmin){
+  } else if(pagina==="admin"&&usuario.isAdmin){
     const abaBtns=["jogos","usuarios","importar"].map(a=>`
-      <button class="grupo-btn" style="background:${adminAba===a?'#1a5c2e':'#e5e7eb'};color:${adminAba===a?'#fff':'#111'}"
-        onclick="setAdminAba('${a}')">${a==="jogos"?"Resultados":a==="usuarios"?"Usuários":"📥 Importar Planilha"}</button>`).join("");
+      <button class="grupo-btn" style="background:${adminAba===a?'#1a5c2e':'#e5e7eb'};color:${adminAba===a?'#fff':'#111'}" onclick="setAdminAba('${a}')">${a==="jogos"?"Resultados":a==="usuarios"?"Usuários":"📥 Importar"}</button>`).join("");
     let abaContent="";
     if(adminAba==="jogos"){
       const pendentes=todos.filter(j=>j.status==="pendente");
@@ -537,18 +510,7 @@ function render(){
             ${flag(j.time1,16)} ${j.time1} <strong>${j.gols1}×${j.gols2}</strong> ${j.time2} ${flag(j.time2,16)}
             <span style="margin-left:auto;font-size:11px;color:#555">${j.data}</span>
           </div>`).join("")}`;
-    } else if(adminAba==="importar"){
-      abaContent=`
-        <h3 style="font-size:15px;font-weight:500;margin:0 0 8px">📥 Importar palpites em massa</h3>
-        <p style="font-size:13px;color:#555;margin-bottom:12px">
-          Selecione o arquivo <strong>.xlsx</strong> com as abas de cada participante.<br>
-          O sistema cria os usuários automaticamente com senha padrão <strong>copa2026</strong>.<br>
-          <strong style="color:#c2410c">⚠️ Palpites importados ficam bloqueados — não podem ser editados.</strong>
-        </p>
-        <input type="file" accept=".xlsx,.xls" onchange="importarPlanilhaMassa(event)" style="width:auto;margin-bottom:8px"/>
-        <div id="import-massa-msg" style="font-size:13px;margin-top:8px"></div>
-        <div id="import-massa-preview" style="margin-top:12px"></div>`;
-    } else {
+    } else if(adminAba==="usuarios"){
       abaContent=`
         <h3 style="font-size:15px;font-weight:500;margin:0 0 10px">Participantes (${usuariosArr().length})</h3>
         ${ranking.map((u,i)=>`
@@ -559,12 +521,23 @@ function render(){
               <div style="font-size:13px;font-weight:500">${u.nome} ${u.isAdmin?tag("Admin","blue"):""}</div>
               <div style="font-size:11px;color:#555">@${u.username}</div>
             </div>
-            <div style="text-align:right;font-size:13px">
+            <div style="text-align:right;font-size:13px;margin-right:8px">
               <div style="font-weight:500">${u.total} pts</div>
               <div style="font-size:11px;color:#555">${u.acertos} acertos</div>
             </div>
             ${!u.isAdmin?`<button onclick="excluirUsuario('${u.id}','${u.nome}')" style="background:#fee2e2;color:#dc2626;border:none;border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;flex-shrink:0">🗑️</button>`:""}
           </div>`).join("")}`;
+    } else {
+      abaContent=`
+        <h3 style="font-size:15px;font-weight:500;margin:0 0 8px">📥 Importar palpites em massa</h3>
+        <p style="font-size:13px;color:#555;margin-bottom:12px">
+          Selecione o <strong>.xlsx</strong> com uma aba por participante.<br>
+          Usuários criados automaticamente com senha <strong>copa2026</strong>.<br>
+          <strong style="color:#c2410c">⚠️ Palpites importados ficam bloqueados.</strong>
+        </p>
+        <input type="file" accept=".xlsx,.xls" onchange="importarPlanilhaMassa(event)" style="width:auto;margin-bottom:8px"/>
+        <div id="import-massa-msg" style="font-size:13px;margin-top:8px"></div>
+        <div id="import-massa-preview" style="margin-top:12px"></div>`;
     }
     content=`
     <h2 style="font-size:18px;font-weight:500;margin:0 0 1rem">⚙️ Painel administrativo</h2>
@@ -587,8 +560,7 @@ function render(){
   <div id="toast" class="toast" style="display:none"></div>`;
 }
 
-// ── AÇÕES ──
-window.setRankAba=a=>{S.rankAba=a;render();};
+// AÇÕES
 window.setAba=a=>{S.aba=a;render();};
 window.ir=p=>{S.pagina=p;render();};
 window.setGrupo=g=>{S.grupoAtivo=g;render();};
@@ -655,30 +627,32 @@ window.salvarPerfil=async()=>{
   S.usuario={...S.usuario,...upd};toast("Perfil atualizado!");render();
 };
 
+window.excluirUsuario=async(uid,nome)=>{
+  if(!confirm(`Excluir "${nome}"? Os palpites também serão removidos.`)) return;
+  await update(ref(db),{[`usuarios/${uid}`]:null,[`palpites/${uid}`]:null});
+  toast(`${nome} removido!`);
+};
+
 window.importarCSV=async(e)=>{
   const msg=document.getElementById("import-msg");if(msg) msg.textContent="";
-  const file=e.target.files[0];if(!file) return;
+  const file=e.target.files[0];if(!file)return;
   const ext=file.name.split(".").pop().toLowerCase();
   const reader=new FileReader();
   reader.onload=async ev=>{
     try{
       let linhas=[];
       if(ext==="xlsx"||ext==="xls"){
-        const data=new Uint8Array(ev.target.result);
-        const wb=XLSX.read(data,{type:"array"});
-        const ws=wb.Sheets[wb.SheetNames[0]];
-        linhas=XLSX.utils.sheet_to_json(ws,{header:1,defval:""}).map(r=>r.map(c=>String(c).trim()));
+        const wb=XLSX.read(new Uint8Array(ev.target.result),{type:"array"});
+        linhas=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:"",raw:true}).map(r=>r.map(c=>String(c).trim()));
       } else {
         linhas=ev.target.result.trim().split(/\r?\n/).map(l=>l.split(/[;,]/));
       }
       if(linhas.length<2){if(msg)msg.innerHTML='<span style="color:#dc2626">⚠️ Arquivo vazio.</span>';return;}
-      const hdr=linhas[0].map(h=>String(h).trim().toLowerCase()
-        .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
-        .replace(/\s+/g," ").trim());
+      const hdr=linhas[0].map(h=>String(h).trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").trim());
       const iId=hdr.findIndex(h=>h==="n"||h==="no"||h==="n."||h==="nº"||h==="num"||h==="numero"||h==="jogo"||h==="id"||(h.startsWith("n")&&h.length<=3));
       const iG1=hdr.findIndex(h=>h==="gols 1"||h==="gols1"||h==="gol 1"||h==="gol1"||(h.includes("gol")&&(h.includes("1")||h.includes("casa"))));
       const iG2=hdr.findIndex(h=>h==="gols 2"||h==="gols2"||h==="gol 2"||h==="gol2"||(h.includes("gol")&&(h.includes("2")||h.includes("fora"))));
-      if(iId<0||iG1<0||iG2<0){if(msg)msg.innerHTML='<span style="color:#dc2626">⚠️ Colunas não encontradas. Use o modelo.</span>';return;}
+      if(iId<0||iG1<0||iG2<0){if(msg)msg.innerHTML='<span style="color:#dc2626">⚠️ Colunas não encontradas.</span>';return;}
       let ok=0,skip=0;
       const updates={};
       const uid=S.usuario.id;
@@ -688,7 +662,6 @@ window.importarCSV=async(e)=>{
         const g1=String(row[iG1]??"").trim();
         const g2=String(row[iG2]??"").trim();
         if(g1===""||g2===""){skip++;return;}
-        // Sempre sobrescreve — incluindo jogos encerrados
         updates[`palpites/${uid}/${j.id}`]={gols1:parseInt(g1)||0,gols2:parseInt(g2)||0,bloqueado:false};
         ok++;
       });
@@ -706,48 +679,37 @@ window.importarPlanilhaMassa=async(e)=>{
   const preview=document.getElementById("import-massa-preview");
   if(msg) msg.innerHTML='<span style="color:#555">⏳ Lendo arquivo...</span>';
   if(preview) preview.innerHTML="";
-  const file=e.target.files[0];if(!file) return;
+  const file=e.target.files[0];if(!file)return;
   const reader=new FileReader();
   reader.onload=async ev=>{
     try{
-      const data=new Uint8Array(ev.target.result);
-      const wb=XLSX.read(data,{type:"array"});
+      const wb=XLSX.read(new Uint8Array(ev.target.result),{type:"array"});
       const abasIgnorar=["jogos","games","partidas","copa","sheet1","planilha1","fase de grupos","instrucoes","instruções"];
       const abas=wb.SheetNames.filter(n=>!abasIgnorar.includes(n.toLowerCase().trim()));
-      if(abas.length===0){if(msg)msg.innerHTML='<span style="color:#dc2626">⚠️ Nenhuma aba de participante encontrada.</span>';return;}
+      if(abas.length===0){if(msg)msg.innerHTML='<span style="color:#dc2626">⚠️ Nenhuma aba encontrada.</span>';return;}
       const resultados=[];
       const todos=jogosArr();
       abas.forEach(nomeAba=>{
         const ws=wb.Sheets[nomeAba];
-        const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:""});
+        const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:"",raw:true,blankrows:false});
         if(rows.length<2){resultados.push({nome:nomeAba,ok:0,skip:0,erro:"Aba vazia"});return;}
-        const hdr=rows[0].map(h=>String(h).trim().toLowerCase()
-          .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
-          .replace(/\s+/g," ").replace(/[°º]/g,"").trim());
-        // Detecta índices de forma ampla
-        const iId=hdr.findIndex(h=>h==="n"||h==="no"||h==="n."||h==="n°"||h==="nº"||h==="num"||h==="numero"||h==="jogo"||h==="id"||(h.startsWith("n")&&h.length<=3));
-        const iG1=hdr.findIndex(h=>h==="gols 1"||h==="gols1"||h==="gol 1"||h==="gol1"||h==="placar 1"||h==="time1 gols"||(h.includes("gol")&&(h.includes("1")||h.includes("casa"))));
-        const iG2=hdr.findIndex(h=>h==="gols 2"||h==="gols2"||h==="gol 2"||h==="gol2"||h==="placar 2"||h==="time2 gols"||(h.includes("gol")&&(h.includes("2")||h.includes("fora"))));
-        if(iId<0||iG1<0||iG2<0){
-          // tenta por posição fixa se cabeçalho não bater (Nº=0, Time1=5, Gols1=6, Gols2=7, Time2=8)
-          const idxFallback=[0,6,7];
-          resultados.push({nome:nomeAba,ok:0,skip:0,erro:`Colunas não encontradas (hdr: ${hdr.slice(0,9).join(" | ")})`});
-          return;
-        }
+        const hdr=rows[0].map(h=>String(h).trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").trim());
+        const iId=hdr.findIndex(h=>h==="n"||h==="no"||h==="n."||h==="nº"||h==="num"||h==="numero"||(h.startsWith("n")&&h.length<=3));
+        const iG1=hdr.findIndex(h=>h==="gols 1"||h==="gols1"||h==="gol 1"||h==="gol1"||(h.includes("gol")&&(h.includes("1")||h.includes("casa"))));
+        const iG2=hdr.findIndex(h=>h==="gols 2"||h==="gols2"||h==="gol 2"||h==="gol2"||(h.includes("gol")&&(h.includes("2")||h.includes("fora"))));
+        if(iId<0||iG1<0||iG2<0){resultados.push({nome:nomeAba,ok:0,skip:0,erro:`Colunas não encontradas`});return;}
         let ok=0,skip=0;
         const palpitesAba={};
         rows.slice(1).forEach(cols=>{
           const jId=parseInt(cols[iId]);
-          const g1=String(cols[iG1]??"").trim();
-          const g2=String(cols[iG2]??"").trim();
-          // Pula se jogo inválido ou AMBOS os gols vazios
+          const g1raw=cols[iG1];const g2raw=cols[iG2];
+          const g1v=g1raw===""||g1raw===null||g1raw===undefined;
+          const g2v=g2raw===""||g2raw===null||g2raw===undefined;
           if(isNaN(jId)||jId<=0){skip++;return;}
-          if(g1===""&&g2===""){skip++;return;} // célula vazia = sem palpite
-          if(g1===""||g2===""){skip++;return;} // só um preenchido = inválido
+          if(g1v||g2v){skip++;return;}
           const jogo=todos.find(j=>j.id===jId);
           if(!jogo){skip++;return;}
-          // Sempre sobrescreve — reimportação atualiza todos os palpites
-          palpitesAba[jId]={gols1:parseInt(g1),gols2:parseInt(g2),bloqueado:true};
+          palpitesAba[jId]={gols1:Number(g1raw),gols2:Number(g2raw),bloqueado:true};
           ok++;
         });
         resultados.push({nome:nomeAba,ok,skip,erro:null,palpites:palpitesAba});
@@ -759,20 +721,16 @@ window.importarPlanilhaMassa=async(e)=>{
           ${resultados.map(r=>`
             <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;background:${r.erro?'#fef2f2':'#f0fdf4'};margin-bottom:4px;font-size:13px">
               ${avHtml(r.nome,28,11)}
-              <div style="flex:1">
-                <div style="font-weight:500">${r.nome}</div>
-                <div style="font-size:11px;color:#555">${r.erro?'⚠️ '+r.erro:r.ok+' palpites · '+r.skip+' ignorados'}</div>
-              </div>
+              <div style="flex:1"><div style="font-weight:500">${r.nome}</div>
+              <div style="font-size:11px;color:#555">${r.erro?'⚠️ '+r.erro:r.ok+' palpites · '+r.skip+' ignorados'}</div></div>
               <span>${r.erro?'❌':'✅'}</span>
             </div>`).join("")}
         </div>
         <div style="display:flex;gap:8px">
-          <button class="btn-p" onclick="confirmarImportacaoMassa()" style="padding:8px 20px">
-            ✅ Confirmar (${resultados.filter(r=>!r.erro).length} participantes)
-          </button>
+          <button class="btn-p" onclick="confirmarImportacaoMassa()" style="padding:8px 20px">✅ Confirmar (${resultados.filter(r=>!r.erro).length})</button>
           <button class="btn-s" onclick="cancelarImportacao()" style="padding:8px 16px">Cancelar</button>
         </div>`;
-      if(msg) msg.innerHTML='<span style="color:#1a5c2e;font-weight:500">✅ Arquivo lido! Confira o preview e confirme.</span>';
+      if(msg) msg.innerHTML='<span style="color:#1a5c2e;font-weight:500">✅ Arquivo lido! Confira e confirme.</span>';
     }catch(err){
       if(msg) msg.innerHTML=`<span style="color:#dc2626">⚠️ Erro: ${err.message}</span>`;
     }
@@ -780,28 +738,19 @@ window.importarPlanilhaMassa=async(e)=>{
   reader.readAsArrayBuffer(file);
 };
 
-window.excluirUsuario=async(uid,nome)=>{
-  if(!confirm(`Excluir "${nome}"? Os palpites dele também serão removidos.`)) return;
-  const updates={};
-  updates[`usuarios/${uid}`]=null;
-  updates[`palpites/${uid}`]=null;
-  await update(ref(db),updates);
-  toast(`${nome} removido!`);
-};
-
 window.confirmarImportacaoMassa=async()=>{
   const msg=document.getElementById("import-massa-msg");
   const preview=document.getElementById("import-massa-preview");
   const resultados=window._importacaoTemp;
-  if(!resultados||resultados.length===0) return;
+  if(!resultados||resultados.length===0)return;
   if(msg) msg.innerHTML='<span style="color:#555">⏳ Importando...</span>';
   try{
     const updates={};
     let usersOk=0,palpitesOk=0;
     for(const r of resultados){
-      if(r.erro||!r.palpites) continue;
+      if(r.erro||!r.palpites)continue;
       const nomeUser=r.nome.toLowerCase().replace(/\s+/g,"_");
-      const existente=Object.values(S.usuarios).find(u=>u.username===nomeUser);
+      const existente=Object.values(S.usuarios).find(u=>u.username===nomeUser||u.nome.toLowerCase()===r.nome.toLowerCase());
       let uid;
       if(existente){
         uid=existente.id;

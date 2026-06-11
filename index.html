@@ -4,6 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Bolão Copa 2026</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:system-ui,sans-serif;background:#f3f4f6;color:#111;min-height:100vh}
@@ -46,7 +47,6 @@
 </div>
 <div id="app" style="display:none"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, set, get, onValue, update }
@@ -64,7 +64,6 @@ const firebaseConfig = {
 const fbApp = initializeApp(firebaseConfig);
 const db = getDatabase(fbApp);
 
-// ── 72 JOGOS REAIS ────────────────────────────────────────────
 const JOGOS_BASE = [
   {id:1,data:"11/06",hora:"16h00",rodada:"1ª Rodada",grupo:"A",time1:"México",time2:"África do Sul",estadio:"Estádio Azteca – Cidade do México"},
   {id:2,data:"11/06",hora:"23h00",rodada:"1ª Rodada",grupo:"A",time1:"Coreia do Sul",time2:"República Tcheca",estadio:"Estádio Akron – Guadalajara"},
@@ -140,22 +139,8 @@ const JOGOS_BASE = [
   {id:72,data:"27/06",hora:"23h00",rodada:"3ª Rodada",grupo:"J",time1:"Jordânia",time2:"Argentina",estadio:"AT&T Stadium – Dallas"},
 ].map(j=>({...j,gols1:null,gols2:null,status:"pendente"}));
 
-const GRUPOS = [...new Set(JOGOS_BASE.map(j=>j.grupo))].sort();
-
-const FLAGS = {
-  "México":"🇲🇽","África do Sul":"🇿🇦","Coreia do Sul":"🇰🇷","República Tcheca":"🇨🇿",
-  "Canadá":"🇨🇦","Bósnia e Herzegovina":"🇧🇦","Estados Unidos":"🇺🇸","Paraguai":"🇵🇾",
-  "Austrália":"🇦🇺","Turquia":"🇹🇷","Catar":"🇶🇦","Suíça":"🇨🇭",
-  "Brasil":"🇧🇷","Marrocos":"🇲🇦","Haiti":"🇭🇹","Escócia":"🏴󠁧󠁢󠁳󠁣󠁴󠁿",
-  "Alemanha":"🇩🇪","Curaçao":"🇨🇼","Holanda":"🇳🇱","Japão":"🇯🇵",
-  "Costa do Marfim":"🇨🇮","Equador":"🇪🇨","Suécia":"🇸🇪","Tunísia":"🇹🇳",
-  "Espanha":"🇪🇸","Cabo Verde":"🇨🇻","Bélgica":"🇧🇪","Egito":"🇪🇬",
-  "Arábia Saudita":"🇸🇦","Uruguai":"🇺🇾","Irã":"🇮🇷","Nova Zelândia":"🇳🇿",
-  "Argentina":"🇦🇷","Argélia":"🇩🇿","França":"🇫🇷","Senegal":"🇸🇳",
-  "Iraque":"🇮🇶","Noruega":"🇳🇴","Áustria":"🇦🇹","Jordânia":"🇯🇴",
-  "Portugal":"🇵🇹","RD Congo":"🇨🇩","Inglaterra":"🏴󠁧󠁢󠁥󠁮󠁧󠁿","Croácia":"🇭🇷",
-  "Gana":"🇬🇭","Panamá":"🇵🇦","Uzbequistão":"🇺🇿","Colômbia":"🇨🇴",
-};
+const GRUPOS=[...new Set(JOGOS_BASE.map(j=>j.grupo))].sort();
+const FLAGS={"México":"🇲🇽","África do Sul":"🇿🇦","Coreia do Sul":"🇰🇷","República Tcheca":"🇨🇿","Canadá":"🇨🇦","Bósnia e Herzegovina":"🇧🇦","Estados Unidos":"🇺🇸","Paraguai":"🇵🇾","Austrália":"🇦🇺","Turquia":"🇹🇷","Catar":"🇶🇦","Suíça":"🇨🇭","Brasil":"🇧🇷","Marrocos":"🇲🇦","Haiti":"🇭🇹","Escócia":"🏴󠁧󠁢󠁳󠁣󠁴󠁿","Alemanha":"🇩🇪","Curaçao":"🇨🇼","Holanda":"🇳🇱","Japão":"🇯🇵","Costa do Marfim":"🇨🇮","Equador":"🇪🇨","Suécia":"🇸🇪","Tunísia":"🇹🇳","Espanha":"🇪🇸","Cabo Verde":"🇨🇻","Bélgica":"🇧🇪","Egito":"🇪🇬","Arábia Saudita":"🇸🇦","Uruguai":"🇺🇾","Irã":"🇮🇷","Nova Zelândia":"🇳🇿","Argentina":"🇦🇷","Argélia":"🇩🇿","França":"🇫🇷","Senegal":"🇸🇳","Iraque":"🇮🇶","Noruega":"🇳🇴","Áustria":"🇦🇹","Jordânia":"🇯🇴","Portugal":"🇵🇹","RD Congo":"🇨🇩","Inglaterra":"🏴󠁧󠁢󠁥󠁮󠁧󠁿","Croácia":"🇭🇷","Gana":"🇬🇭","Panamá":"🇵🇦","Uzbequistão":"🇺🇿","Colômbia":"🇨🇴"};
 
 function calcPts(pal,jogo){
   if(jogo.gols1===null||jogo.gols1===undefined||!pal) return null;
@@ -164,7 +149,6 @@ function calcPts(pal,jogo){
   const vP=pal.gols1>pal.gols2?"1":pal.gols1<pal.gols2?"2":"e";
   return vR===vP?1:0;
 }
-
 function avatarBg(n){
   const cols=["#1a5c2e","#1565c0","#6a1b9a","#ad1457","#e65100","#00695c","#4527a0"];
   let h=0; for(let i=0;i<(n||"").length;i++) h=(n||"").charCodeAt(i)+((h<<5)-h);
@@ -175,49 +159,51 @@ function avHtml(nome,size,fs){
   const ini=(nome||"?").split(" ").map(p=>p[0]).join("").toUpperCase().slice(0,2);
   return `<div class="av" style="width:${size}px;height:${size}px;background:${bg};font-size:${fs}px">${ini}</div>`;
 }
-function flag(t,s){ return `<span style="font-size:${s||20}px">${FLAGS[t]||"🏳️"}</span>`; }
-function tag(txt,tipo){ return `<span class="tag tag-${tipo||"gray"}">${txt}</span>`; }
+function flag(t,s){return `<span style="font-size:${s||20}px">${FLAGS[t]||"🏳️"}</span>`;}
+function tag(txt,tipo){return `<span class="tag tag-${tipo||"gray"}">${txt}</span>`;}
 
-// ── ESTADO ────────────────────────────────────────────────────
 let S={usuario:null,usuarios:{},jogos:{},palpites:{},pagina:"login",grupoAtivo:"A",adminAba:"jogos",palTemp:{},aba:"login",importAberto:false};
 
-async function fbGet(path){ const snap=await get(ref(db,path)); return snap.exists()?snap.val():null; }
-async function fbSet(path,val){ await set(ref(db,path),val); }
-async function fbUpd(path,val){ await update(ref(db,path),val); }
+async function fbGet(path){const snap=await get(ref(db,path));return snap.exists()?snap.val():null;}
+async function fbSet(path,val){await set(ref(db,path),val);}
+async function fbUpd(path,val){await update(ref(db,path),val);}
 
 async function init(){
-  let jogos=await fbGet("jogos");
-  if(!jogos){
-    jogos={};
-    JOGOS_BASE.forEach(j=>{ jogos[j.id]=j; });
-    await fbSet("jogos",jogos);
+  try{
+    let jogos=await fbGet("jogos");
+    if(!jogos){
+      jogos={};
+      JOGOS_BASE.forEach(j=>{jogos[j.id]=j;});
+      await fbSet("jogos",jogos);
+    }
+    S.jogos=jogos;
+    S.usuarios=await fbGet("usuarios")||{};
+    if(!Object.values(S.usuarios).find(u=>u.username==="admin")){
+      await fbSet("usuarios/admin",{id:"admin",nome:"Admin",username:"admin",senha:"admin123",isAdmin:true});
+      S.usuarios["admin"]={id:"admin",nome:"Admin",username:"admin",senha:"admin123",isAdmin:true};
+    }
+    S.palpites=await fbGet("palpites")||{};
+    const sess=localStorage.getItem("bolao_user");
+    if(sess&&S.usuarios[sess]) S.usuario=S.usuarios[sess];
+    document.getElementById("loading").style.display="none";
+    document.getElementById("app").style.display="block";
+    render();
+    onValue(ref(db,"jogos"),snap=>{if(snap.exists()){S.jogos=snap.val();render();}});
+    onValue(ref(db,"palpites"),snap=>{if(snap.exists()){S.palpites=snap.val();render();}});
+    onValue(ref(db,"usuarios"),snap=>{if(snap.exists()){S.usuarios=snap.val();render();}});
+  }catch(err){
+    document.getElementById("loading").innerHTML=`<p style="color:#dc2626;font-size:14px">Erro ao conectar: ${err.message}</p>`;
   }
-  S.jogos=jogos;
-  S.usuarios=await fbGet("usuarios")||{};
-  if(!Object.values(S.usuarios).find(u=>u.username==="admin")){
-    await fbSet("usuarios/admin",{id:"admin",nome:"Admin",username:"admin",senha:"admin123",isAdmin:true});
-    S.usuarios["admin"]={id:"admin",nome:"Admin",username:"admin",senha:"admin123",isAdmin:true};
-  }
-  S.palpites=await fbGet("palpites")||{};
-  const sess=localStorage.getItem("bolao_user");
-  if(sess&&S.usuarios[sess]) S.usuario=S.usuarios[sess];
-  document.getElementById("loading").style.display="none";
-  document.getElementById("app").style.display="block";
-  render();
-  onValue(ref(db,"jogos"),snap=>{ if(snap.exists()){S.jogos=snap.val();render();} });
-  onValue(ref(db,"palpites"),snap=>{ if(snap.exists()){S.palpites=snap.val();render();} });
-  onValue(ref(db,"usuarios"),snap=>{ if(snap.exists()){S.usuarios=snap.val();render();} });
 }
 
 function toast(msg,tipo){
-  const el=document.getElementById("toast"); if(!el)return;
-  el.textContent=msg; el.style.background=tipo==="err"?"#c62828":"#1a5c2e"; el.style.display="block";
-  clearTimeout(window._tt); window._tt=setTimeout(()=>el.style.display="none",3000);
+  const el=document.getElementById("toast");if(!el)return;
+  el.textContent=msg;el.style.background=tipo==="err"?"#c62828":"#1a5c2e";el.style.display="block";
+  clearTimeout(window._tt);window._tt=setTimeout(()=>el.style.display="none",3000);
 }
-
-function jogosArr(){ return Object.values(S.jogos).sort((a,b)=>a.id-b.id); }
-function usuariosArr(){ return Object.values(S.usuarios); }
-function getPal(jId){ return (S.palpites[S.usuario?.id]||{})[jId]||null; }
+function jogosArr(){return Object.values(S.jogos).sort((a,b)=>a.id-b.id);}
+function usuariosArr(){return Object.values(S.usuarios);}
+function getPal(jId){return (S.palpites[S.usuario?.id]||{})[jId]||null;}
 
 function getRanking(){
   return usuariosArr().map(u=>{
@@ -225,17 +211,16 @@ function getRanking(){
     let total=0,acertos=0,exatos=0;
     jogosArr().forEach(j=>{
       if(j.gols1===null||j.gols1===undefined) return;
-      const p=meus[j.id]; if(!p) return;
+      const p=meus[j.id];if(!p) return;
       const pts=calcPts(p,j);
-      if(pts>0){total+=pts;acertos++;} if(pts===3)exatos++;
+      if(pts>0){total+=pts;acertos++;}if(pts===3)exatos++;
     });
     return {...u,total,acertos,exatos};
   }).sort((a,b)=>b.total-a.total||b.acertos-a.acertos||a.nome.localeCompare(b.nome));
 }
 
-// ── RENDER ────────────────────────────────────────────────────
 function render(){
-  const app=document.getElementById("app"); if(!app)return;
+  const app=document.getElementById("app");if(!app)return;
   const {usuario,pagina,grupoAtivo,aba,adminAba,importAberto}=S;
   const ranking=getRanking();
   const myData=ranking.find(r=>r.id===usuario?.id)||{total:0,acertos:0,exatos:0};
@@ -243,6 +228,52 @@ function render(){
   const todos=jogosArr();
   const encerrados=todos.filter(j=>j.status==="encerrado");
   const proxJogos=todos.filter(j=>j.status==="pendente").slice(0,4);
+
+  // ── RANKING PÚBLICO ──
+  if(pagina==="ranking-publico"){
+    app.innerHTML=`
+    <div style="min-height:100vh;background:#f3f4f6;padding:1rem">
+      <div style="max-width:600px;margin:0 auto">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:8px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:28px">🏆</span>
+            <div>
+              <h1 style="font-size:18px;font-weight:500;margin:0">Bolão Copa 2026</h1>
+              <p style="font-size:12px;color:#555;margin:0">${encerrados.length} jogo(s) encerrado(s) · ${usuariosArr().length} participantes</p>
+            </div>
+          </div>
+          <button class="btn-p" onclick="ir('login')" style="padding:6px 16px;font-size:13px">Entrar no bolão →</button>
+        </div>
+        <div class="card" style="margin-bottom:16px">
+          <div style="display:grid;grid-template-columns:36px 1fr 54px 54px 54px;gap:6px;padding:6px 10px;font-size:11px;color:#555;font-weight:500;margin-bottom:4px">
+            <span>#</span><span>Participante</span><span style="text-align:right">Pts</span><span style="text-align:right">Acertos</span><span style="text-align:right">Crav.</span>
+          </div>
+          ${ranking.length===0?'<p style="font-size:13px;color:#555;padding:8px">Nenhum participante ainda.</p>':
+          ranking.map((u,i)=>`
+            <div style="display:grid;grid-template-columns:36px 1fr 54px 54px 54px;gap:6px;align-items:center;padding:8px 10px;border-radius:8px;background:${i%2===0?'#f9fafb':'transparent'};margin-bottom:2px">
+              <span style="text-align:center;font-size:15px">${i===0?"🥇":i===1?"🥈":i===2?"🥉":i+1}</span>
+              <div style="display:flex;align-items:center;gap:7px">${avHtml(u.nome,26,10)}<span style="font-size:13px">${u.nome}</span></div>
+              <span style="text-align:right;font-weight:500;font-size:13px;color:${i===0?'#f59e0b':i===1?'#9ca3af':i===2?'#b45309':'#111'}">${u.total}</span>
+              <span style="text-align:right;color:#555;font-size:13px">${u.acertos}</span>
+              <span style="text-align:right;color:#555;font-size:13px">${u.exatos}</span>
+            </div>`).join("")}
+        </div>
+        <div class="card">
+          <h3 style="font-size:14px;font-weight:500;margin:0 0 10px">⚽ Últimos resultados</h3>
+          ${encerrados.length===0?'<p style="font-size:13px;color:#555">Nenhum jogo encerrado ainda.</p>':
+          encerrados.slice(-5).reverse().map(j=>`
+            <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #e5e7eb;font-size:13px">
+              ${flag(j.time1,16)}<span style="flex:1">${j.time1}</span>
+              <span style="font-weight:500;font-size:15px">${j.gols1} × ${j.gols2}</span>
+              <span style="flex:1;text-align:right">${j.time2}</span>${flag(j.time2,16)}
+            </div>`).join("")}
+        </div>
+        <p style="text-align:center;font-size:12px;color:#aaa;margin-top:16px">Atualizado em tempo real · Palpites ocultos até o apito final</p>
+      </div>
+    </div>
+    <div id="toast" class="toast" style="display:none"></div>`;
+    return;
+  }
 
   // ── LOGIN ──
   if(!usuario){
@@ -254,14 +285,14 @@ function render(){
           <h1 style="font-size:22px;font-weight:500;margin-bottom:4px">Bolão Copa 2026</h1>
           <p style="font-size:13px;color:#555">FIFA World Cup — EUA · México · Canadá</p>
         </div>
+        <div style="text-align:center;margin-bottom:12px">
+          <button onclick="ir('ranking-publico')" style="background:transparent;border:1px solid #d1d5db;border-radius:8px;padding:6px 16px;font-size:13px;color:#555;cursor:pointer">👁️ Ver ranking sem entrar</button>
+        </div>
         <div style="display:flex;gap:8px;margin-bottom:1.25rem">
           <button onclick="setAba('login')" style="flex:1;padding:7px;border-radius:8px;border:1px solid ${aba==='login'?'#d1d5db':'transparent'};background:${aba==='login'?'#f3f4f6':'transparent'};font-weight:${aba==='login'?500:400}">Entrar</button>
           <button onclick="setAba('cadastro')" style="flex:1;padding:7px;border-radius:8px;border:1px solid ${aba==='cadastro'?'#d1d5db':'transparent'};background:${aba==='cadastro'?'#f3f4f6':'transparent'};font-weight:${aba==='cadastro'?500:400}">Criar conta</button>
         </div>
-        <div style="text-align:center;margin-bottom:12px">
-      <button onclick="ir('ranking-publico')" style="background:transparent;border:1px solid #d1d5db;border-radius:8px;padding:6px 16px;font-size:13px;color:#555;cursor:pointer">👁️ Ver ranking sem entrar</button>
-    </div>
-    <div id="login-erro" style="color:#dc2626;font-size:13px;margin-bottom:8px;display:none"></div>
+        <div id="login-erro" style="color:#dc2626;font-size:13px;margin-bottom:8px;display:none"></div>
         ${aba==='login'?`
           <label style="font-size:12px;color:#555">Usuário</label>
           <input id="l-user" placeholder="Seu usuário" style="margin-top:4px"/>
@@ -285,63 +316,7 @@ function render(){
     return;
   }
 
-  // ── RANKING PÚBLICO ──
-  if(pagina==="ranking-publico"){
-    const encerrados=jogosArr().filter(j=>j.status==="encerrado");
-    app.innerHTML=`
-    <div style="min-height:100vh;background:#f3f4f6;padding:1rem">
-      <div style="max-width:600px;margin:0 auto">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:8px">
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:28px">🏆</span>
-            <div>
-              <h1 style="font-size:18px;font-weight:500;margin:0">Bolão Copa 2026</h1>
-              <p style="font-size:12px;color:#555;margin:0">${encerrados.length} jogo(s) encerrado(s) · ${usuariosArr().length} participantes</p>
-            </div>
-          </div>
-          <button onclick="ir('login')" style="background:#1a5c2e;color:#fff;border:none;border-radius:8px;padding:6px 16px;font-size:13px;cursor:pointer;font-weight:500">Entrar no bolão →</button>
-        </div>
-
-        <div class="card" style="margin-bottom:16px">
-          <div style="display:grid;grid-template-columns:36px 1fr 54px 54px 54px;gap:6px;padding:6px 10px;font-size:11px;color:#555;font-weight:500;margin-bottom:4px">
-            <span>#</span><span>Participante</span>
-            <span style="text-align:right">Pts</span>
-            <span style="text-align:right">Acertos</span>
-            <span style="text-align:right">Crav.</span>
-          </div>
-          ${ranking.length===0?'<p style="font-size:13px;color:#555;padding:8px">Nenhum participante ainda.</p>':
-          ranking.map((u,i)=>`
-            <div style="display:grid;grid-template-columns:36px 1fr 54px 54px 54px;gap:6px;align-items:center;padding:8px 10px;border-radius:8px;background:${i%2===0?'#f9fafb':'transparent'};margin-bottom:2px">
-              <span style="text-align:center;font-size:15px">${i===0?"🥇":i===1?"🥈":i===2?"🥉":i+1}</span>
-              <div style="display:flex;align-items:center;gap:7px">
-                ${avHtml(u.nome,26,10)}
-                <span style="font-size:13px">${u.nome}</span>
-              </div>
-              <span style="text-align:right;font-weight:500;font-size:13px;color:${i===0?'#f59e0b':i===1?'#9ca3af':i===2?'#b45309':'#111'}">${u.total}</span>
-              <span style="text-align:right;color:#555;font-size:13px">${u.acertos}</span>
-              <span style="text-align:right;color:#555;font-size:13px">${u.exatos}</span>
-            </div>`).join("")}
-        </div>
-
-        <div class="card">
-          <h3 style="font-size:14px;font-weight:500;margin:0 0 10px">📋 Últimos resultados</h3>
-          ${encerrados.length===0?'<p style="font-size:13px;color:#555">Nenhum jogo encerrado ainda.</p>':
-          encerrados.slice(-5).reverse().map(j=>`
-            <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #e5e7eb;font-size:13px">
-              ${flag(j.time1,16)}
-              <span style="flex:1">${j.time1}</span>
-              <span style="font-weight:500;font-size:15px">${j.gols1} × ${j.gols2}</span>
-              <span style="flex:1;text-align:right">${j.time2}</span>
-              ${flag(j.time2,16)}
-            </div>`).join("")}
-        </div>
-
-        <p style="text-align:center;font-size:12px;color:#aaa;margin-top:16px">Atualizado em tempo real · Palpites ocultos até o apito final</p>
-      </div>
-    </div>
-    <div id="toast" class="toast" style="display:none"></div>`;
-    return;
-  }
+  // ── NAVEGAÇÃO ──
   const pages=[["dashboard","🏠 Início"],["palpites","✏️ Palpites"],["ranking","🏅 Ranking"]];
   if(usuario.isAdmin) pages.push(["admin","⚙️ Admin"]);
   pages.push(["perfil","👤 Perfil"]);
@@ -417,36 +392,30 @@ function render(){
     const grpBtns=GRUPOS.map(g=>`
       <button class="grupo-btn" style="background:${grupoAtivo===g?'#1a5c2e':'#e5e7eb'};color:${grupoAtivo===g?'#fff':'#111'}"
         onclick="setGrupo('${g}')">Grupo ${g}</button>`).join("");
-
     const importHtml=importAberto?`
       <div class="import-box">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-          <h3 style="font-size:15px;font-weight:500;margin:0">📥 Importar palpites via CSV</h3>
+          <h3 style="font-size:15px;font-weight:500;margin:0">📥 Importar palpites via planilha</h3>
           <button class="btn-s" style="padding:4px 10px;font-size:12px" onclick="toggleImport()">✕ Fechar</button>
         </div>
         <p style="font-size:13px;color:#555;margin-bottom:10px">
-          1. Baixe o modelo com todos os jogos já listados<br>
-          2. Preencha apenas as colunas <strong>gols1</strong> e <strong>gols2</strong><br>
-          3. Salve e faça o upload abaixo
+          Baixe a planilha modelo, preencha <strong>Gols 1</strong> e <strong>Gols 2</strong> e faça o upload.
         </p>
-        <div class="mono">jogo_id;time1;time2;gols1;gols2
-1;México;África do Sul;2;1
-2;Coreia do Sul;República Tcheca;0;0</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
           <a href="https://docs.google.com/spreadsheets/d/1E_47jLIjkXVmaVU4crpMUQ1GcpBMu4fV/export?format=xlsx" target="_blank">
-          <button class="btn-p" style="font-size:13px;padding:6px 14px">⬇️ Baixar planilha modelo (.xlsx)</button>
-        </a>
+            <button class="btn-p" style="font-size:13px;padding:6px 14px">⬇️ Baixar planilha modelo (.xlsx)</button>
+          </a>
         </div>
         <label style="font-size:13px;font-weight:500;display:block;margin-bottom:6px">📂 Selecionar arquivo preenchido:</label>
         <input type="file" accept=".csv,.txt,.xlsx,.xls" onchange="importarCSV(event)" style="width:auto;margin-bottom:8px"/>
         <div id="import-msg" style="font-size:13px;margin-top:4px"></div>
-      </div>`:
-      `<div style="margin-bottom:12px">
-        <button class="btn-p" style="font-size:13px;padding:6px 16px" onclick="toggleImport()">📥 Importar palpites via CSV</button>
+      </div>`:`
+      <div style="margin-bottom:12px">
+        <button class="btn-p" style="font-size:13px;padding:6px 16px" onclick="toggleImport()">📥 Importar palpites via planilha</button>
       </div>`;
-
     const jogosHtml=filtrados.map(j=>{
-      const pal=getPal(j.id), enc=j.status==="encerrado";
+      const pal=getPal(j.id),enc=j.status==="encerrado";
+      const bloqueado=pal&&pal.bloqueado;
       const pts=pal&&enc?calcPts(pal,j):null;
       const tmp=S.palTemp[j.id]||{};
       const vC=tmp.gols1!==undefined?tmp.gols1:(pal?pal.gols1:"");
@@ -454,26 +423,27 @@ function render(){
       return `<div class="jogo-card">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:6px">
           <div style="font-size:11px;color:#555">${j.rodada} · ${j.data} ${j.hora}<br>${j.estadio}</div>
-          <div>${tag(enc?"Encerrado":"Aberto",enc?"green":"orange")}${pts!==null?" "+tag(pts+" pts",pts===3?"green":pts===1?"blue":"gray"):""}</div>
+          <div>${tag(enc?"Encerrado":"Aberto",enc?"green":"orange")}${pts!==null?" "+tag(pts+" pts",pts===3?"green":pts===1?"blue":"gray"):""}${bloqueado&&!enc?" "+tag("🔒 Importado","gray"):""}</div>
         </div>
         <div class="jogo-times">
           <div style="flex:1;text-align:center">${flag(j.time1,28)}<div style="font-size:12px;margin-top:4px">${j.time1}</div></div>
           <div style="display:flex;align-items:center;gap:6px">
             ${enc
               ?`<span style="font-size:22px;font-weight:500;color:#555">${j.gols1} × ${j.gols2}</span>`
-              :`<input class="gol-input" type="number" min="0" max="20" value="${vC}" oninput="setPalTemp(${j.id},'gols1',this.value)"/>
-               <span style="font-size:14px;color:#555">×</span>
-               <input class="gol-input" type="number" min="0" max="20" value="${vF}" oninput="setPalTemp(${j.id},'gols2',this.value)"/>`}
+              :bloqueado
+                ?`<span style="font-size:22px;font-weight:500;color:#1a5c2e">${pal.gols1} × ${pal.gols2}</span>`
+                :`<input class="gol-input" type="number" min="0" max="20" value="${vC}" oninput="setPalTemp(${j.id},'gols1',this.value)"/>
+                 <span style="font-size:14px;color:#555">×</span>
+                 <input class="gol-input" type="number" min="0" max="20" value="${vF}" oninput="setPalTemp(${j.id},'gols2',this.value)"/>`}
           </div>
           <div style="flex:1;text-align:center">${flag(j.time2,28)}<div style="font-size:12px;margin-top:4px">${j.time2}</div></div>
         </div>
-        ${!enc?`<div style="text-align:center"><button class="btn-p" style="padding:6px 20px;font-size:13px" onclick="salvarPalpite(${j.id})">
-          ${pal?"Atualizar palpite":"Salvar palpite"}</button></div>`:""}
+        ${!enc&&!bloqueado?`<div style="text-align:center"><button class="btn-p" style="padding:6px 20px;font-size:13px" onclick="salvarPalpite(${j.id})">${pal?"Atualizar palpite":"Salvar palpite"}</button></div>`:""}
         ${enc&&pal?`<div style="text-align:center;font-size:12px;color:#555;margin-top:4px">Seu palpite: ${pal.gols1} × ${pal.gols2}</div>`:""}
-        ${!enc&&pal?`<div style="text-align:center;font-size:12px;color:#86efac;margin-top:4px">✓ Palpite registrado</div>`:""}
+        ${!enc&&!pal?`<div style="text-align:center;font-size:12px;color:#aaa;margin-top:4px">Sem palpite ainda</div>`:""}
+        ${!enc&&pal&&!bloqueado?`<div style="text-align:center;font-size:12px;color:#86efac;margin-top:4px">✓ Palpite registrado</div>`:""}
       </div>`;
     }).join("");
-
     content=`
     <h2 style="font-size:18px;font-weight:500;margin:0 0 1rem">✏️ Meus palpites</h2>
     ${importHtml}
@@ -493,10 +463,7 @@ function render(){
         const isMe=u.id===usuario.id;
         return `<div class="rank-row" style="background:${isMe?'#f0fdf4':i%2===0?'#f9fafb':'transparent'};border:1px solid ${isMe?'#86efac':'transparent'}">
           <span style="text-align:center;font-size:15px">${i===0?"🥇":i===1?"🥈":i===2?"🥉":i+1}</span>
-          <div style="display:flex;align-items:center;gap:7px">
-            ${avHtml(u.nome,26,10)}
-            <span style="font-size:13px;font-weight:${isMe?500:400};color:${isMe?'#1a5c2e':'inherit'}">${u.nome}${isMe?" (você)":""}</span>
-          </div>
+          <div style="display:flex;align-items:center;gap:7px">${avHtml(u.nome,26,10)}<span style="font-size:13px;font-weight:${isMe?500:400};color:${isMe?'#1a5c2e':'inherit'}">${u.nome}${isMe?" (você)":""}</span></div>
           <span style="text-align:right;font-weight:500;font-size:13px">${u.total}</span>
           <span style="text-align:right;color:#555;font-size:13px">${u.acertos}</span>
           <span style="text-align:right;color:#555;font-size:13px">${u.exatos}</span>
@@ -540,7 +507,6 @@ function render(){
       const pendentes=todos.filter(j=>j.status==="pendente");
       abaContent=`
         <h3 style="font-size:15px;font-weight:500;margin:0 0 8px">Lançar resultado oficial</h3>
-        <p style="font-size:12px;color:#555;margin-bottom:10px">Os pontos são calculados automaticamente para todos os participantes.</p>
         <select id="adm-jogo" style="margin-bottom:10px">
           <option value="">— Selecione um jogo —</option>
           ${pendentes.map(j=>`<option value="${j.id}">#${j.id} ${j.time1} × ${j.time2} (${j.data} — Grupo ${j.grupo})</option>`).join("")}
@@ -562,12 +528,9 @@ function render(){
         <h3 style="font-size:15px;font-weight:500;margin:0 0 8px">📥 Importar palpites em massa</h3>
         <p style="font-size:13px;color:#555;margin-bottom:12px">
           Selecione o arquivo <strong>.xlsx</strong> com as abas de cada participante.<br>
-          O sistema vai criar os usuários automaticamente com senha padrão <strong>copa2026</strong> e salvar os palpites.<br>
-          <strong style="color:#c2410c">⚠️ Os palpites importados ficam bloqueados — não podem ser editados.</strong>
+          O sistema cria os usuários automaticamente com senha padrão <strong>copa2026</strong>.<br>
+          <strong style="color:#c2410c">⚠️ Palpites importados ficam bloqueados — não podem ser editados.</strong>
         </p>
-        <div class="mono">Formato esperado em cada aba:
-Nº | Time 1 | Gols 1 | Gols 2 | Time 2 | ...
-1  | México |   2    |   0    | África do Sul</div>
         <input type="file" accept=".xlsx,.xls" onchange="importarPlanilhaMassa(event)" style="width:auto;margin-bottom:8px"/>
         <div id="import-massa-msg" style="font-size:13px;margin-top:8px"></div>
         <div id="import-massa-preview" style="margin-top:12px"></div>`;
@@ -609,19 +572,19 @@ Nº | Time 1 | Gols 1 | Gols 2 | Time 2 | ...
   <div id="toast" class="toast" style="display:none"></div>`;
 }
 
-// ── AÇÕES ─────────────────────────────────────────────────────
-window.setAba=a=>{ S.aba=a; render(); };
-window.ir=p=>{ S.pagina=p; render(); };
-window.setGrupo=g=>{ S.grupoAtivo=g; render(); };
-window.setAdminAba=a=>{ S.adminAba=a; render(); };
-window.toggleImport=()=>{ S.importAberto=!S.importAberto; render(); };
+// ── AÇÕES ──
+window.setAba=a=>{S.aba=a;render();};
+window.ir=p=>{S.pagina=p;render();};
+window.setGrupo=g=>{S.grupoAtivo=g;render();};
+window.setAdminAba=a=>{S.adminAba=a;render();};
+window.toggleImport=()=>{S.importAberto=!S.importAberto;render();};
 
 window.doLogin=async()=>{
   const user=document.getElementById("l-user")?.value.trim();
   const senha=document.getElementById("l-senha")?.value;
   const u=Object.values(S.usuarios).find(x=>x.username===user&&x.senha===senha);
-  if(!u){ const el=document.getElementById("login-erro"); el.style.display="block"; el.textContent="Usuário ou senha incorretos."; return; }
-  S.usuario=u; localStorage.setItem("bolao_user",u.id); S.pagina="dashboard"; render();
+  if(!u){const el=document.getElementById("login-erro");el.style.display="block";el.textContent="Usuário ou senha incorretos.";return;}
+  S.usuario=u;localStorage.setItem("bolao_user",u.id);S.pagina="dashboard";render();
 };
 
 window.doCadastro=async()=>{
@@ -637,10 +600,10 @@ window.doCadastro=async()=>{
   const id="u_"+Date.now();
   const novo={id,nome,username:user,senha,isAdmin:false};
   await fbSet("usuarios/"+id,novo);
-  S.usuario=novo; localStorage.setItem("bolao_user",id); S.pagina="dashboard"; render();
+  S.usuario=novo;localStorage.setItem("bolao_user",id);S.pagina="dashboard";render();
 };
 
-window.doLogout=()=>{ S.usuario=null; localStorage.removeItem("bolao_user"); S.pagina="login"; render(); };
+window.doLogout=()=>{S.usuario=null;localStorage.removeItem("bolao_user");S.pagina="login";render();};
 
 window.setPalTemp=(jId,campo,val)=>{
   if(!S.palTemp[jId]) S.palTemp[jId]={};
@@ -651,12 +614,10 @@ window.salvarPalpite=async(jId)=>{
   const tmp=S.palTemp[jId];
   if(!tmp||tmp.gols1===undefined||tmp.gols2===undefined){toast("Preencha o placar!","err");return;}
   const uid=S.usuario.id;
-  if(!uid){toast("Erro: usuário não identificado.","err");return;}
-  await fbSet(`palpites/${uid}/${jId}`,{gols1:tmp.gols1,gols2:tmp.gols2});
+  await fbSet(`palpites/${uid}/${jId}`,{gols1:tmp.gols1,gols2:tmp.gols2,bloqueado:false});
   if(!S.palpites[uid]) S.palpites[uid]={};
-  S.palpites[uid][jId]={gols1:tmp.gols1,gols2:tmp.gols2};
-  toast("Palpite salvo!");
-  render();
+  S.palpites[uid][jId]={gols1:tmp.gols1,gols2:tmp.gols2,bloqueado:false};
+  toast("Palpite salvo!");render();
 };
 
 window.lancarResultado=async()=>{
@@ -673,71 +634,51 @@ window.salvarPerfil=async()=>{
   const senha=document.getElementById("p-senha")?.value;
   if(!nome){toast("Nome não pode estar vazio.","err");return;}
   const upd={nome};
-  if(senha){if(senha.length<4){toast("Senha muito curta.","err");return;} upd.senha=senha;}
+  if(senha){if(senha.length<4){toast("Senha muito curta.","err");return;}upd.senha=senha;}
   await fbUpd(`usuarios/${S.usuario.id}`,upd);
-  S.usuario={...S.usuario,...upd}; toast("Perfil atualizado!"); render();
-};
-
-window.baixarModelo=()=>{
-  const todos=jogosArr();
-  const linhas=[["jogo_id","time1","time2","gols1","gols2"]];
-  todos.forEach(j=>linhas.push([j.id,j.time1,j.time2,"",""]));
-  const csv=linhas.map(l=>l.join(";")).join("\n");
-  const url=URL.createObjectURL(new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"}));
-  const a=document.createElement("a"); a.href=url; a.download="bolao2026_modelo.csv"; a.click(); URL.revokeObjectURL(url);
+  S.usuario={...S.usuario,...upd};toast("Perfil atualizado!");render();
 };
 
 window.importarCSV=async(e)=>{
-  const msg=document.getElementById("import-msg"); if(msg) msg.textContent="";
-  const file=e.target.files[0]; if(!file) return;
+  const msg=document.getElementById("import-msg");if(msg) msg.textContent="";
+  const file=e.target.files[0];if(!file) return;
   const ext=file.name.split(".").pop().toLowerCase();
   const reader=new FileReader();
-
   reader.onload=async ev=>{
     try{
       let linhas=[];
       if(ext==="xlsx"||ext==="xls"){
-        // Lê Excel com SheetJS
         const data=new Uint8Array(ev.target.result);
         const wb=XLSX.read(data,{type:"array"});
         const ws=wb.Sheets[wb.SheetNames[0]];
-        const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:""});
-        linhas=rows.map(r=>r.map(c=>String(c).trim()));
+        linhas=XLSX.utils.sheet_to_json(ws,{header:1,defval:""}).map(r=>r.map(c=>String(c).trim()));
       } else {
-        // Lê CSV/TXT normalmente
         linhas=ev.target.result.trim().split(/\r?\n/).map(l=>l.split(/[;,]/));
       }
-
-      if(linhas.length<2){if(msg)msg.innerHTML='<span style="color:#dc2626">⚠️ Arquivo vazio ou inválido.</span>';return;}
-      const hdr=linhas[0].map(h=>String(h).trim().toLowerCase().replace(/\r/g,"").replace(/[°º]/g,"").normalize("NFD").replace(/[\u0300-\u036f]/g,""));
-      const iId=hdr.findIndex(h=>h==="n"||h==="no"||h==="num"||h.startsWith("n")&&h.length<=3||h.includes("jogo")||h==="id");
-      const iG1=hdr.findIndex(h=>h==="gols 1"||h==="gols1"||h==="gol 1"||h==="gol1"||(h.includes("gol")&&(h.includes("1")||h.includes("casa"))));
-      const iG2=hdr.findIndex(h=>h==="gols 2"||h==="gols2"||h==="gol 2"||h==="gol2"||(h.includes("gol")&&(h.includes("2")||h.includes("fora"))));
+      if(linhas.length<2){if(msg)msg.innerHTML='<span style="color:#dc2626">⚠️ Arquivo vazio.</span>';return;}
+      const hdr=linhas[0].map(h=>String(h).trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\r/g,""));
+      const iId=hdr.findIndex(h=>h==="n"||h==="no"||h==="n."||h==="nº"||h==="num"||h.startsWith("n")&&h.length<=3||h.includes("jogo")||h==="id");
+      const iG1=hdr.findIndex(h=>h==="gols 1"||h==="gols1"||(h.includes("gol")&&h.includes("1")));
+      const iG2=hdr.findIndex(h=>h==="gols 2"||h==="gols2"||(h.includes("gol")&&h.includes("2")));
       if(iId<0||iG1<0||iG2<0){if(msg)msg.innerHTML='<span style="color:#dc2626">⚠️ Colunas não encontradas. Use o modelo.</span>';return;}
       let ok=0,skip=0;
-      const todos=jogosArr();
       const updates={};
-      linhas.slice(1).forEach(cols=>{
-        const jId=parseInt(cols[iId]);
-        const g1=String(cols[iG1]||"").replace(/\r/g,"").trim();
-        const g2=String(cols[iG2]||"").replace(/\r/g,"").trim();
-        if(isNaN(jId)||g1===""||g2===""){skip++;return;}
-        const jogo=todos.find(j=>j.id===jId);
-        if(!jogo||jogo.status==="encerrado"){skip++;return;}
-        updates[`palpites/${S.usuario.id}/${jId}`]={gols1:parseInt(g1)||0,gols2:parseInt(g2)||0};
+      const uid=S.usuario.id;
+      jogosArr().forEach(j=>{
+        const row=linhas.slice(1).find(cols=>parseInt(cols[iId])===j.id);
+        if(!row){skip++;return;}
+        const g1=String(row[iG1]||"").trim();
+        const g2=String(row[iG2]||"").trim();
+        if(g1===""||g2===""){skip++;return;}
+        if(j.status==="encerrado"){skip++;return;}
+        updates[`palpites/${uid}/${j.id}`]={gols1:parseInt(g1)||0,gols2:parseInt(g2)||0,bloqueado:false};
         ok++;
       });
       if(ok>0) await update(ref(db),updates);
-      if(!S.palpites[S.usuario.id]) S.palpites[S.usuario.id]={};
-      Object.entries(updates).forEach(([k,v])=>{
-        const jId=parseInt(k.split("/")[2]);
-        S.palpites[S.usuario.id][jId]=v;
-      });
-      if(msg) msg.innerHTML=`<span style="color:#166534;font-weight:500">✅ ${ok} palpite(s) importado(s).${skip>0?" "+skip+" linha(s) ignorada(s).":""}</span>`;
+      if(msg) msg.innerHTML=`<span style="color:#166534;font-weight:500">✅ ${ok} palpite(s) importado(s).${skip>0?" "+skip+" ignorado(s).":""}</span>`;
       e.target.value="";
-    }catch(err){if(msg)msg.innerHTML='<span style="color:#dc2626">⚠️ Erro ao ler o arquivo. Verifique o formato.</span>';}
+    }catch(err){if(msg)msg.innerHTML=`<span style="color:#dc2626">⚠️ Erro: ${err.message}</span>`;}
   };
-
   if(ext==="xlsx"||ext==="xls") reader.readAsArrayBuffer(file);
   else reader.readAsText(file,"UTF-8");
 };
@@ -747,39 +688,26 @@ window.importarPlanilhaMassa=async(e)=>{
   const preview=document.getElementById("import-massa-preview");
   if(msg) msg.innerHTML='<span style="color:#555">⏳ Lendo arquivo...</span>';
   if(preview) preview.innerHTML="";
-  const file=e.target.files[0]; if(!file) return;
-
+  const file=e.target.files[0];if(!file) return;
   const reader=new FileReader();
   reader.onload=async ev=>{
     try{
       const data=new Uint8Array(ev.target.result);
       const wb=XLSX.read(data,{type:"array"});
-
-      // Abas que NÃO são participantes (pula a aba de jogos se existir)
-      const abasIgnorar=["jogos","games","partidas","copa","sheet1","planilha1","fase de grupos"];
+      const abasIgnorar=["jogos","games","partidas","copa","sheet1","planilha1","fase de grupos","instrucoes","instruções"];
       const abas=wb.SheetNames.filter(n=>!abasIgnorar.includes(n.toLowerCase().trim()));
-
-      if(abas.length===0){
-        if(msg) msg.innerHTML='<span style="color:#dc2626">⚠️ Nenhuma aba de participante encontrada.</span>';
-        return;
-      }
-
-      // Monta preview
+      if(abas.length===0){if(msg)msg.innerHTML='<span style="color:#dc2626">⚠️ Nenhuma aba de participante encontrada.</span>';return;}
       const resultados=[];
       const todos=jogosArr();
-
       abas.forEach(nomeAba=>{
         const ws=wb.Sheets[nomeAba];
         const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:""});
         if(rows.length<2){resultados.push({nome:nomeAba,ok:0,skip:0,erro:"Aba vazia"});return;}
-
         const hdr=rows[0].map(h=>String(h).trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,""));
-        const iId=hdr.findIndex(h=>h==="n"||h==="no"||h==="num"||h==="n."||h==="nº"||h.startsWith("n")&&h.length<=3);
-        const iG1=hdr.findIndex(h=>h==="gols 1"||h==="gols1"||h==="gol 1"||h==="gol1"||(h.includes("gol")&&h.includes("1")));
-        const iG2=hdr.findIndex(h=>h==="gols 2"||h==="gols2"||h==="gol 2"||h==="gol2"||(h.includes("gol")&&h.includes("2")));
-
+        const iId=hdr.findIndex(h=>h==="n"||h==="no"||h==="n."||h==="nº"||h==="num"||h.startsWith("n")&&h.length<=3);
+        const iG1=hdr.findIndex(h=>h==="gols 1"||h==="gols1"||(h.includes("gol")&&h.includes("1")));
+        const iG2=hdr.findIndex(h=>h==="gols 2"||h==="gols2"||(h.includes("gol")&&h.includes("2")));
         if(iId<0||iG1<0||iG2<0){resultados.push({nome:nomeAba,ok:0,skip:0,erro:"Colunas não encontradas"});return;}
-
         let ok=0,skip=0;
         const palpitesAba={};
         rows.slice(1).forEach(cols=>{
@@ -794,34 +722,29 @@ window.importarPlanilhaMassa=async(e)=>{
         });
         resultados.push({nome:nomeAba,ok,skip,erro:null,palpites:palpitesAba});
       });
-
-      // Mostra preview
+      window._importacaoTemp=resultados;
       if(preview) preview.innerHTML=`
-        <h4 style="font-size:14px;font-weight:500;margin:0 0 10px">Preview — ${resultados.length} participante(s) encontrado(s):</h4>
-        <div style="max-height:300px;overflow-y:auto">
-        ${resultados.map(r=>`
-          <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;background:${r.erro?'#fef2f2':'#f0fdf4'};margin-bottom:4px;font-size:13px">
-            ${avHtml(r.nome,28,11)}
-            <div style="flex:1">
-              <div style="font-weight:500">${r.nome}</div>
-              <div style="font-size:11px;color:#555">${r.erro?'⚠️ '+r.erro:r.ok+' palpites · '+r.skip+' ignorados'}</div>
-            </div>
-            <span style="font-size:11px">${r.erro?'❌':'✅'}</span>
-          </div>`).join("")}
+        <h4 style="font-size:14px;font-weight:500;margin:0 0 10px">Preview — ${resultados.length} participante(s):</h4>
+        <div style="max-height:300px;overflow-y:auto;margin-bottom:12px">
+          ${resultados.map(r=>`
+            <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;background:${r.erro?'#fef2f2':'#f0fdf4'};margin-bottom:4px;font-size:13px">
+              ${avHtml(r.nome,28,11)}
+              <div style="flex:1">
+                <div style="font-weight:500">${r.nome}</div>
+                <div style="font-size:11px;color:#555">${r.erro?'⚠️ '+r.erro:r.ok+' palpites · '+r.skip+' ignorados'}</div>
+              </div>
+              <span>${r.erro?'❌':'✅'}</span>
+            </div>`).join("")}
         </div>
-        <div style="margin-top:12px;display:flex;gap:8px">
+        <div style="display:flex;gap:8px">
           <button class="btn-p" onclick="confirmarImportacaoMassa()" style="padding:8px 20px">
-            ✅ Confirmar importação (${resultados.filter(r=>!r.erro).length} participantes)
+            ✅ Confirmar (${resultados.filter(r=>!r.erro).length} participantes)
           </button>
           <button class="btn-s" onclick="cancelarImportacao()" style="padding:8px 16px">Cancelar</button>
         </div>`;
-
-      // Salva resultados temporariamente
-      window._importacaoTemp=resultados;
-      if(msg) msg.innerHTML=`<span style="color:#1a5c2e;font-weight:500">✅ Arquivo lido! Confira o preview abaixo antes de confirmar.</span>`;
-
+      if(msg) msg.innerHTML='<span style="color:#1a5c2e;font-weight:500">✅ Arquivo lido! Confira o preview e confirme.</span>';
     }catch(err){
-      if(msg) msg.innerHTML=`<span style="color:#dc2626">⚠️ Erro ao ler o arquivo: ${err.message}</span>`;
+      if(msg) msg.innerHTML=`<span style="color:#dc2626">⚠️ Erro: ${err.message}</span>`;
     }
   };
   reader.readAsArrayBuffer(file);
@@ -833,15 +756,12 @@ window.confirmarImportacaoMassa=async()=>{
   const resultados=window._importacaoTemp;
   if(!resultados||resultados.length===0) return;
   if(msg) msg.innerHTML='<span style="color:#555">⏳ Importando...</span>';
-
   try{
     const updates={};
-    let usersOk=0, palpitesOk=0;
-
+    let usersOk=0,palpitesOk=0;
     for(const r of resultados){
       if(r.erro||!r.palpites) continue;
-      // Cria usuário se não existir
-      const nomeUser=r.nome.toLowerCase().replace(/\s/g,"_");
+      const nomeUser=r.nome.toLowerCase().replace(/\s+/g,"_");
       const existente=Object.values(S.usuarios).find(u=>u.username===nomeUser);
       let uid;
       if(existente){
@@ -851,19 +771,17 @@ window.confirmarImportacaoMassa=async()=>{
         updates[`usuarios/${uid}`]={id:uid,nome:r.nome,username:nomeUser,senha:"copa2026",isAdmin:false};
         usersOk++;
       }
-      // Salva palpites bloqueados
       Object.entries(r.palpites).forEach(([jId,pal])=>{
         updates[`palpites/${uid}/${jId}`]=pal;
         palpitesOk++;
       });
     }
-
     await update(ref(db),updates);
     if(preview) preview.innerHTML="";
-    if(msg) msg.innerHTML=`<span style="color:#166534;font-weight:500">✅ Importação concluída! ${usersOk} usuário(s) criado(s), ${palpitesOk} palpite(s) salvos.</span>`;
+    if(msg) msg.innerHTML=`<span style="color:#166534;font-weight:500">✅ ${usersOk} usuário(s) criado(s) · ${palpitesOk} palpite(s) salvos!<br>Senha padrão: <strong>copa2026</strong></span>`;
     window._importacaoTemp=null;
   }catch(err){
-    if(msg) msg.innerHTML=`<span style="color:#dc2626">⚠️ Erro na importação: ${err.message}</span>`;
+    if(msg) msg.innerHTML=`<span style="color:#dc2626">⚠️ Erro: ${err.message}</span>`;
   }
 };
 
@@ -874,6 +792,8 @@ window.cancelarImportacao=()=>{
   if(preview) preview.innerHTML="";
   if(msg) msg.innerHTML="";
 };
+
+init();
 </script>
 </body>
 </html>

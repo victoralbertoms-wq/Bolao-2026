@@ -657,10 +657,12 @@ window.importarCSV=async(e)=>{
         linhas=ev.target.result.trim().split(/\r?\n/).map(l=>l.split(/[;,]/));
       }
       if(linhas.length<2){if(msg)msg.innerHTML='<span style="color:#dc2626">⚠️ Arquivo vazio.</span>';return;}
-      const hdr=linhas[0].map(h=>String(h).trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\r/g,""));
-      const iId=hdr.findIndex(h=>h==="n"||h==="no"||h==="n."||h==="nº"||h==="num"||h.startsWith("n")&&h.length<=3||h.includes("jogo")||h==="id");
-      const iG1=hdr.findIndex(h=>h==="gols 1"||h==="gols1"||(h.includes("gol")&&h.includes("1")));
-      const iG2=hdr.findIndex(h=>h==="gols 2"||h==="gols2"||(h.includes("gol")&&h.includes("2")));
+      const hdr=linhas[0].map(h=>String(h).trim().toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+        .replace(/\s+/g," ").trim());
+      const iId=hdr.findIndex(h=>h==="n"||h==="no"||h==="n."||h==="nº"||h==="num"||h==="numero"||h==="jogo"||h==="id"||(h.startsWith("n")&&h.length<=3));
+      const iG1=hdr.findIndex(h=>h==="gols 1"||h==="gols1"||h==="gol 1"||h==="gol1"||(h.includes("gol")&&(h.includes("1")||h.includes("casa"))));
+      const iG2=hdr.findIndex(h=>h==="gols 2"||h==="gols2"||h==="gol 2"||h==="gol2"||(h.includes("gol")&&(h.includes("2")||h.includes("fora"))));
       if(iId<0||iG1<0||iG2<0){if(msg)msg.innerHTML='<span style="color:#dc2626">⚠️ Colunas não encontradas. Use o modelo.</span>';return;}
       let ok=0,skip=0;
       const updates={};
@@ -704,21 +706,32 @@ window.importarPlanilhaMassa=async(e)=>{
         const ws=wb.Sheets[nomeAba];
         const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:""});
         if(rows.length<2){resultados.push({nome:nomeAba,ok:0,skip:0,erro:"Aba vazia"});return;}
-        const hdr=rows[0].map(h=>String(h).trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,""));
-        const iId=hdr.findIndex(h=>h==="n"||h==="no"||h==="n."||h==="nº"||h==="num"||h.startsWith("n")&&h.length<=3);
-        const iG1=hdr.findIndex(h=>h==="gols 1"||h==="gols1"||(h.includes("gol")&&h.includes("1")));
-        const iG2=hdr.findIndex(h=>h==="gols 2"||h==="gols2"||(h.includes("gol")&&h.includes("2")));
-        if(iId<0||iG1<0||iG2<0){resultados.push({nome:nomeAba,ok:0,skip:0,erro:"Colunas não encontradas"});return;}
+        const hdr=rows[0].map(h=>String(h).trim().toLowerCase()
+          .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+          .replace(/\s+/g," ").replace(/[°º]/g,"").trim());
+        // Detecta índices de forma ampla
+        const iId=hdr.findIndex(h=>h==="n"||h==="no"||h==="n."||h==="n°"||h==="nº"||h==="num"||h==="numero"||h==="jogo"||h==="id"||(h.startsWith("n")&&h.length<=3));
+        const iG1=hdr.findIndex(h=>h==="gols 1"||h==="gols1"||h==="gol 1"||h==="gol1"||h==="placar 1"||h==="time1 gols"||(h.includes("gol")&&(h.includes("1")||h.includes("casa"))));
+        const iG2=hdr.findIndex(h=>h==="gols 2"||h==="gols2"||h==="gol 2"||h==="gol2"||h==="placar 2"||h==="time2 gols"||(h.includes("gol")&&(h.includes("2")||h.includes("fora"))));
+        if(iId<0||iG1<0||iG2<0){
+          // tenta por posição fixa se cabeçalho não bater (Nº=0, Time1=5, Gols1=6, Gols2=7, Time2=8)
+          const idxFallback=[0,6,7];
+          resultados.push({nome:nomeAba,ok:0,skip:0,erro:`Colunas não encontradas (hdr: ${hdr.slice(0,9).join(" | ")})`});
+          return;
+        }
         let ok=0,skip=0;
         const palpitesAba={};
         rows.slice(1).forEach(cols=>{
           const jId=parseInt(cols[iId]);
-          const g1=String(cols[iG1]||"").trim();
-          const g2=String(cols[iG2]||"").trim();
-          if(isNaN(jId)||g1===""||g2===""){skip++;return;}
+          const g1=String(cols[iG1]??"").trim();
+          const g2=String(cols[iG2]??"").trim();
+          // Pula se jogo inválido ou AMBOS os gols vazios
+          if(isNaN(jId)||jId<=0){skip++;return;}
+          if(g1===""&&g2===""){skip++;return;} // célula vazia = sem palpite
+          if(g1===""||g2===""){skip++;return;} // só um preenchido = inválido
           const jogo=todos.find(j=>j.id===jId);
           if(!jogo){skip++;return;}
-          palpitesAba[jId]={gols1:parseInt(g1)||0,gols2:parseInt(g2)||0,bloqueado:true};
+          palpitesAba[jId]={gols1:parseInt(g1),gols2:parseInt(g2),bloqueado:true};
           ok++;
         });
         resultados.push({nome:nomeAba,ok,skip,erro:null,palpites:palpitesAba});

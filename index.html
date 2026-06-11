@@ -549,6 +549,7 @@ function render(){
               <div style="font-weight:500">${u.total} pts</div>
               <div style="font-size:11px;color:#555">${u.acertos} acertos</div>
             </div>
+            ${!u.isAdmin?`<button onclick="excluirUsuario('${u.id}','${u.nome}')" style="background:#fee2e2;color:#dc2626;border:none;border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;flex-shrink:0">🗑️</button>`:""}
           </div>`).join("")}`;
     }
     content=`
@@ -748,6 +749,15 @@ window.importarPlanilhaMassa=async(e)=>{
     }
   };
   reader.readAsArrayBuffer(file);
+};
+
+window.excluirUsuario=async(uid,nome)=>{
+  if(!confirm(`Excluir "${nome}"? Os palpites dele também serão removidos.`)) return;
+  const updates={};
+  updates[`usuarios/${uid}`]=null;
+  updates[`palpites/${uid}`]=null;
+  await update(ref(db),updates);
+  toast(`${nome} removido!`);
 };
 
 window.confirmarImportacaoMassa=async()=>{

@@ -670,10 +670,10 @@ window.importarCSV=async(e)=>{
       jogosArr().forEach(j=>{
         const row=linhas.slice(1).find(cols=>parseInt(cols[iId])===j.id);
         if(!row){skip++;return;}
-        const g1=String(row[iG1]||"").trim();
-        const g2=String(row[iG2]||"").trim();
+        const g1=String(row[iG1]??"").trim();
+        const g2=String(row[iG2]??"").trim();
         if(g1===""||g2===""){skip++;return;}
-        if(j.status==="encerrado"){skip++;return;}
+        // Sempre sobrescreve — incluindo jogos encerrados
         updates[`palpites/${uid}/${j.id}`]={gols1:parseInt(g1)||0,gols2:parseInt(g2)||0,bloqueado:false};
         ok++;
       });
@@ -731,6 +731,7 @@ window.importarPlanilhaMassa=async(e)=>{
           if(g1===""||g2===""){skip++;return;} // só um preenchido = inválido
           const jogo=todos.find(j=>j.id===jId);
           if(!jogo){skip++;return;}
+          // Sempre sobrescreve — reimportação atualiza todos os palpites
           palpitesAba[jId]={gols1:parseInt(g1),gols2:parseInt(g2),bloqueado:true};
           ok++;
         });

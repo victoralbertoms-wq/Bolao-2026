@@ -453,8 +453,14 @@ function render(){
 
   // ── RANKING ──
   else if(pagina==="ranking"){
+    const rankAba=S.rankAba||"bolao";
     content=`
-    <h2 style="font-size:18px;font-weight:500;margin:0 0 1rem">🏅 Classificação — ${usuariosArr().length} participantes</h2>
+    <h2 style="font-size:18px;font-weight:500;margin:0 0 1rem">🏅 Ranking & Grupos</h2>
+    <div style="display:flex;gap:6px;margin-bottom:1rem">
+      <button class="grupo-btn" style="background:${rankAba==='bolao'?'#1a5c2e':'#e5e7eb'};color:${rankAba==='bolao'?'#fff':'#111'}" onclick="setRankAba('bolao')">🏆 Bolão</button>
+      <button class="grupo-btn" style="background:${rankAba==='grupos'?'#1a5c2e':'#e5e7eb'};color:${rankAba==='grupos'?'#fff':'#111'}" onclick="setRankAba('grupos')">📊 Grupos da Copa</button>
+    </div>
+    ${rankAba==='bolao'?`
     <div class="card">
       <div style="display:grid;grid-template-columns:36px 1fr 54px 54px 54px;gap:6px;padding:6px 10px;font-size:11px;color:#555;font-weight:500;margin-bottom:4px">
         <span>#</span><span>Participante</span><span style="text-align:right">Pts</span><span style="text-align:right">Acertos</span><span style="text-align:right">Crav.</span>
@@ -469,7 +475,15 @@ function render(){
           <span style="text-align:right;color:#555;font-size:13px">${u.exatos}</span>
         </div>`;
       }).join("")}
-    </div>`;
+    </div>`:`
+    <div class="card" style="padding:0;overflow:hidden">
+      <iframe src="https://widget.api-futebol.com.br/render/widget_3011a7e1604bf850"
+        title="Grupos Copa 2026"
+        style="border:none;width:100%;height:800px;display:block;"
+        referrerpolicy="unsafe-url">
+      </iframe>
+    </div>`}`;
+  }
   }
 
   // ── PERFIL ──
@@ -574,6 +588,7 @@ function render(){
 }
 
 // ── AÇÕES ──
+window.setRankAba=a=>{S.rankAba=a;render();};
 window.setAba=a=>{S.aba=a;render();};
 window.ir=p=>{S.pagina=p;render();};
 window.setGrupo=g=>{S.grupoAtivo=g;render();};

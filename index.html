@@ -258,7 +258,10 @@ function render(){
           <button onclick="setAba('login')" style="flex:1;padding:7px;border-radius:8px;border:1px solid ${aba==='login'?'#d1d5db':'transparent'};background:${aba==='login'?'#f3f4f6':'transparent'};font-weight:${aba==='login'?500:400}">Entrar</button>
           <button onclick="setAba('cadastro')" style="flex:1;padding:7px;border-radius:8px;border:1px solid ${aba==='cadastro'?'#d1d5db':'transparent'};background:${aba==='cadastro'?'#f3f4f6':'transparent'};font-weight:${aba==='cadastro'?500:400}">Criar conta</button>
         </div>
-        <div id="login-erro" style="color:#dc2626;font-size:13px;margin-bottom:8px;display:none"></div>
+        <div style="text-align:center;margin-bottom:12px">
+      <button onclick="ir('ranking-publico')" style="background:transparent;border:1px solid #d1d5db;border-radius:8px;padding:6px 16px;font-size:13px;color:#555;cursor:pointer">👁️ Ver ranking sem entrar</button>
+    </div>
+    <div id="login-erro" style="color:#dc2626;font-size:13px;margin-bottom:8px;display:none"></div>
         ${aba==='login'?`
           <label style="font-size:12px;color:#555">Usuário</label>
           <input id="l-user" placeholder="Seu usuário" style="margin-top:4px"/>
@@ -282,7 +285,63 @@ function render(){
     return;
   }
 
-  // ── PÁGINAS ──
+  // ── RANKING PÚBLICO ──
+  if(pagina==="ranking-publico"){
+    const encerrados=jogosArr().filter(j=>j.status==="encerrado");
+    app.innerHTML=`
+    <div style="min-height:100vh;background:#f3f4f6;padding:1rem">
+      <div style="max-width:600px;margin:0 auto">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:8px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:28px">🏆</span>
+            <div>
+              <h1 style="font-size:18px;font-weight:500;margin:0">Bolão Copa 2026</h1>
+              <p style="font-size:12px;color:#555;margin:0">${encerrados.length} jogo(s) encerrado(s) · ${usuariosArr().length} participantes</p>
+            </div>
+          </div>
+          <button onclick="ir('login')" style="background:#1a5c2e;color:#fff;border:none;border-radius:8px;padding:6px 16px;font-size:13px;cursor:pointer;font-weight:500">Entrar no bolão →</button>
+        </div>
+
+        <div class="card" style="margin-bottom:16px">
+          <div style="display:grid;grid-template-columns:36px 1fr 54px 54px 54px;gap:6px;padding:6px 10px;font-size:11px;color:#555;font-weight:500;margin-bottom:4px">
+            <span>#</span><span>Participante</span>
+            <span style="text-align:right">Pts</span>
+            <span style="text-align:right">Acertos</span>
+            <span style="text-align:right">Crav.</span>
+          </div>
+          ${ranking.length===0?'<p style="font-size:13px;color:#555;padding:8px">Nenhum participante ainda.</p>':
+          ranking.map((u,i)=>`
+            <div style="display:grid;grid-template-columns:36px 1fr 54px 54px 54px;gap:6px;align-items:center;padding:8px 10px;border-radius:8px;background:${i%2===0?'#f9fafb':'transparent'};margin-bottom:2px">
+              <span style="text-align:center;font-size:15px">${i===0?"🥇":i===1?"🥈":i===2?"🥉":i+1}</span>
+              <div style="display:flex;align-items:center;gap:7px">
+                ${avHtml(u.nome,26,10)}
+                <span style="font-size:13px">${u.nome}</span>
+              </div>
+              <span style="text-align:right;font-weight:500;font-size:13px;color:${i===0?'#f59e0b':i===1?'#9ca3af':i===2?'#b45309':'#111'}">${u.total}</span>
+              <span style="text-align:right;color:#555;font-size:13px">${u.acertos}</span>
+              <span style="text-align:right;color:#555;font-size:13px">${u.exatos}</span>
+            </div>`).join("")}
+        </div>
+
+        <div class="card">
+          <h3 style="font-size:14px;font-weight:500;margin:0 0 10px">📋 Últimos resultados</h3>
+          ${encerrados.length===0?'<p style="font-size:13px;color:#555">Nenhum jogo encerrado ainda.</p>':
+          encerrados.slice(-5).reverse().map(j=>`
+            <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #e5e7eb;font-size:13px">
+              ${flag(j.time1,16)}
+              <span style="flex:1">${j.time1}</span>
+              <span style="font-weight:500;font-size:15px">${j.gols1} × ${j.gols2}</span>
+              <span style="flex:1;text-align:right">${j.time2}</span>
+              ${flag(j.time2,16)}
+            </div>`).join("")}
+        </div>
+
+        <p style="text-align:center;font-size:12px;color:#aaa;margin-top:16px">Atualizado em tempo real · Palpites ocultos até o apito final</p>
+      </div>
+    </div>
+    <div id="toast" class="toast" style="display:none"></div>`;
+    return;
+  }
   const pages=[["dashboard","🏠 Início"],["palpites","✏️ Palpites"],["ranking","🏅 Ranking"]];
   if(usuario.isAdmin) pages.push(["admin","⚙️ Admin"]);
   pages.push(["perfil","👤 Perfil"]);
@@ -473,9 +532,9 @@ function render(){
 
   // ── ADMIN ──
   else if(pagina==="admin"&&usuario.isAdmin){
-    const abaBtns=["jogos","usuarios"].map(a=>`
+    const abaBtns=["jogos","usuarios","importar"].map(a=>`
       <button class="grupo-btn" style="background:${adminAba===a?'#1a5c2e':'#e5e7eb'};color:${adminAba===a?'#fff':'#111'}"
-        onclick="setAdminAba('${a}')">${a==="jogos"?"Resultados":"Usuários"}</button>`).join("");
+        onclick="setAdminAba('${a}')">${a==="jogos"?"Resultados":a==="usuarios"?"Usuários":"📥 Importar Planilha"}</button>`).join("");
     let abaContent="";
     if(adminAba==="jogos"){
       const pendentes=todos.filter(j=>j.status==="pendente");
@@ -498,6 +557,20 @@ function render(){
             ${flag(j.time1,16)} ${j.time1} <strong>${j.gols1}×${j.gols2}</strong> ${j.time2} ${flag(j.time2,16)}
             <span style="margin-left:auto;font-size:11px;color:#555">${j.data}</span>
           </div>`).join("")}`;
+    } else if(adminAba==="importar"){
+      abaContent=`
+        <h3 style="font-size:15px;font-weight:500;margin:0 0 8px">📥 Importar palpites em massa</h3>
+        <p style="font-size:13px;color:#555;margin-bottom:12px">
+          Selecione o arquivo <strong>.xlsx</strong> com as abas de cada participante.<br>
+          O sistema vai criar os usuários automaticamente com senha padrão <strong>copa2026</strong> e salvar os palpites.<br>
+          <strong style="color:#c2410c">⚠️ Os palpites importados ficam bloqueados — não podem ser editados.</strong>
+        </p>
+        <div class="mono">Formato esperado em cada aba:
+Nº | Time 1 | Gols 1 | Gols 2 | Time 2 | ...
+1  | México |   2    |   0    | África do Sul</div>
+        <input type="file" accept=".xlsx,.xls" onchange="importarPlanilhaMassa(event)" style="width:auto;margin-bottom:8px"/>
+        <div id="import-massa-msg" style="font-size:13px;margin-top:8px"></div>
+        <div id="import-massa-preview" style="margin-top:12px"></div>`;
     } else {
       abaContent=`
         <h3 style="font-size:15px;font-weight:500;margin:0 0 10px">Participantes (${usuariosArr().length})</h3>
@@ -669,7 +742,138 @@ window.importarCSV=async(e)=>{
   else reader.readAsText(file,"UTF-8");
 };
 
-init();
+window.importarPlanilhaMassa=async(e)=>{
+  const msg=document.getElementById("import-massa-msg");
+  const preview=document.getElementById("import-massa-preview");
+  if(msg) msg.innerHTML='<span style="color:#555">⏳ Lendo arquivo...</span>';
+  if(preview) preview.innerHTML="";
+  const file=e.target.files[0]; if(!file) return;
+
+  const reader=new FileReader();
+  reader.onload=async ev=>{
+    try{
+      const data=new Uint8Array(ev.target.result);
+      const wb=XLSX.read(data,{type:"array"});
+
+      // Abas que NÃO são participantes (pula a aba de jogos se existir)
+      const abasIgnorar=["jogos","games","partidas","copa","sheet1","planilha1","fase de grupos"];
+      const abas=wb.SheetNames.filter(n=>!abasIgnorar.includes(n.toLowerCase().trim()));
+
+      if(abas.length===0){
+        if(msg) msg.innerHTML='<span style="color:#dc2626">⚠️ Nenhuma aba de participante encontrada.</span>';
+        return;
+      }
+
+      // Monta preview
+      const resultados=[];
+      const todos=jogosArr();
+
+      abas.forEach(nomeAba=>{
+        const ws=wb.Sheets[nomeAba];
+        const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:""});
+        if(rows.length<2){resultados.push({nome:nomeAba,ok:0,skip:0,erro:"Aba vazia"});return;}
+
+        const hdr=rows[0].map(h=>String(h).trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,""));
+        const iId=hdr.findIndex(h=>h==="n"||h==="no"||h==="num"||h==="n."||h==="nº"||h.startsWith("n")&&h.length<=3);
+        const iG1=hdr.findIndex(h=>h==="gols 1"||h==="gols1"||h==="gol 1"||h==="gol1"||(h.includes("gol")&&h.includes("1")));
+        const iG2=hdr.findIndex(h=>h==="gols 2"||h==="gols2"||h==="gol 2"||h==="gol2"||(h.includes("gol")&&h.includes("2")));
+
+        if(iId<0||iG1<0||iG2<0){resultados.push({nome:nomeAba,ok:0,skip:0,erro:"Colunas não encontradas"});return;}
+
+        let ok=0,skip=0;
+        const palpitesAba={};
+        rows.slice(1).forEach(cols=>{
+          const jId=parseInt(cols[iId]);
+          const g1=String(cols[iG1]||"").trim();
+          const g2=String(cols[iG2]||"").trim();
+          if(isNaN(jId)||g1===""||g2===""){skip++;return;}
+          const jogo=todos.find(j=>j.id===jId);
+          if(!jogo){skip++;return;}
+          palpitesAba[jId]={gols1:parseInt(g1)||0,gols2:parseInt(g2)||0,bloqueado:true};
+          ok++;
+        });
+        resultados.push({nome:nomeAba,ok,skip,erro:null,palpites:palpitesAba});
+      });
+
+      // Mostra preview
+      if(preview) preview.innerHTML=`
+        <h4 style="font-size:14px;font-weight:500;margin:0 0 10px">Preview — ${resultados.length} participante(s) encontrado(s):</h4>
+        <div style="max-height:300px;overflow-y:auto">
+        ${resultados.map(r=>`
+          <div style="display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;background:${r.erro?'#fef2f2':'#f0fdf4'};margin-bottom:4px;font-size:13px">
+            ${avHtml(r.nome,28,11)}
+            <div style="flex:1">
+              <div style="font-weight:500">${r.nome}</div>
+              <div style="font-size:11px;color:#555">${r.erro?'⚠️ '+r.erro:r.ok+' palpites · '+r.skip+' ignorados'}</div>
+            </div>
+            <span style="font-size:11px">${r.erro?'❌':'✅'}</span>
+          </div>`).join("")}
+        </div>
+        <div style="margin-top:12px;display:flex;gap:8px">
+          <button class="btn-p" onclick="confirmarImportacaoMassa()" style="padding:8px 20px">
+            ✅ Confirmar importação (${resultados.filter(r=>!r.erro).length} participantes)
+          </button>
+          <button class="btn-s" onclick="cancelarImportacao()" style="padding:8px 16px">Cancelar</button>
+        </div>`;
+
+      // Salva resultados temporariamente
+      window._importacaoTemp=resultados;
+      if(msg) msg.innerHTML=`<span style="color:#1a5c2e;font-weight:500">✅ Arquivo lido! Confira o preview abaixo antes de confirmar.</span>`;
+
+    }catch(err){
+      if(msg) msg.innerHTML=`<span style="color:#dc2626">⚠️ Erro ao ler o arquivo: ${err.message}</span>`;
+    }
+  };
+  reader.readAsArrayBuffer(file);
+};
+
+window.confirmarImportacaoMassa=async()=>{
+  const msg=document.getElementById("import-massa-msg");
+  const preview=document.getElementById("import-massa-preview");
+  const resultados=window._importacaoTemp;
+  if(!resultados||resultados.length===0) return;
+  if(msg) msg.innerHTML='<span style="color:#555">⏳ Importando...</span>';
+
+  try{
+    const updates={};
+    let usersOk=0, palpitesOk=0;
+
+    for(const r of resultados){
+      if(r.erro||!r.palpites) continue;
+      // Cria usuário se não existir
+      const nomeUser=r.nome.toLowerCase().replace(/\s/g,"_");
+      const existente=Object.values(S.usuarios).find(u=>u.username===nomeUser);
+      let uid;
+      if(existente){
+        uid=existente.id;
+      } else {
+        uid="u_"+Date.now()+"_"+Math.random().toString(36).slice(2,6);
+        updates[`usuarios/${uid}`]={id:uid,nome:r.nome,username:nomeUser,senha:"copa2026",isAdmin:false};
+        usersOk++;
+      }
+      // Salva palpites bloqueados
+      Object.entries(r.palpites).forEach(([jId,pal])=>{
+        updates[`palpites/${uid}/${jId}`]=pal;
+        palpitesOk++;
+      });
+    }
+
+    await update(ref(db),updates);
+    if(preview) preview.innerHTML="";
+    if(msg) msg.innerHTML=`<span style="color:#166534;font-weight:500">✅ Importação concluída! ${usersOk} usuário(s) criado(s), ${palpitesOk} palpite(s) salvos.</span>`;
+    window._importacaoTemp=null;
+  }catch(err){
+    if(msg) msg.innerHTML=`<span style="color:#dc2626">⚠️ Erro na importação: ${err.message}</span>`;
+  }
+};
+
+window.cancelarImportacao=()=>{
+  window._importacaoTemp=null;
+  const preview=document.getElementById("import-massa-preview");
+  const msg=document.getElementById("import-massa-msg");
+  if(preview) preview.innerHTML="";
+  if(msg) msg.innerHTML="";
+};
 </script>
 </body>
 </html>

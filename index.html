@@ -453,36 +453,34 @@ function render(){
 
   // ── RANKING ──
   else if(pagina==="ranking"){
-    const rankAba=S.rankAba||"bolao";
     content=`
     <h2 style="font-size:18px;font-weight:500;margin:0 0 1rem">🏅 Ranking & Grupos</h2>
-    <div style="display:flex;gap:6px;margin-bottom:1rem">
-      <button class="grupo-btn" style="background:${rankAba==='bolao'?'#1a5c2e':'#e5e7eb'};color:${rankAba==='bolao'?'#fff':'#111'}" onclick="setRankAba('bolao')">🏆 Bolão</button>
-      <button class="grupo-btn" style="background:${rankAba==='grupos'?'#1a5c2e':'#e5e7eb'};color:${rankAba==='grupos'?'#fff':'#111'}" onclick="setRankAba('grupos')">📊 Grupos da Copa</button>
-    </div>
-    ${rankAba==='bolao'?`
-    <div class="card">
-      <div style="display:grid;grid-template-columns:36px 1fr 54px 54px 54px;gap:6px;padding:6px 10px;font-size:11px;color:#555;font-weight:500;margin-bottom:4px">
-        <span>#</span><span>Participante</span><span style="text-align:right">Pts</span><span style="text-align:right">Acertos</span><span style="text-align:right">Crav.</span>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+      <div class="card">
+        <h3 style="font-size:14px;font-weight:500;margin:0 0 10px">🏆 Bolão — ${usuariosArr().length} participantes</h3>
+        <div style="display:grid;grid-template-columns:36px 1fr 54px 54px 54px;gap:6px;padding:6px 10px;font-size:11px;color:#555;font-weight:500;margin-bottom:4px">
+          <span>#</span><span>Participante</span><span style="text-align:right">Pts</span><span style="text-align:right">Acertos</span><span style="text-align:right">Crav.</span>
+        </div>
+        ${ranking.map((u,i)=>{
+          const isMe=u.id===usuario.id;
+          return `<div class="rank-row" style="background:${isMe?'#f0fdf4':i%2===0?'#f9fafb':'transparent'};border:1px solid ${isMe?'#86efac':'transparent'}">
+            <span style="text-align:center;font-size:15px">${i===0?"🥇":i===1?"🥈":i===2?"🥉":i+1}</span>
+            <div style="display:flex;align-items:center;gap:7px">${avHtml(u.nome,26,10)}<span style="font-size:13px;font-weight:${isMe?500:400};color:${isMe?'#1a5c2e':'inherit'}">${u.nome}${isMe?" (você)":""}</span></div>
+            <span style="text-align:right;font-weight:500;font-size:13px">${u.total}</span>
+            <span style="text-align:right;color:#555;font-size:13px">${u.acertos}</span>
+            <span style="text-align:right;color:#555;font-size:13px">${u.exatos}</span>
+          </div>`;
+        }).join("")}
       </div>
-      ${ranking.map((u,i)=>{
-        const isMe=u.id===usuario.id;
-        return `<div class="rank-row" style="background:${isMe?'#f0fdf4':i%2===0?'#f9fafb':'transparent'};border:1px solid ${isMe?'#86efac':'transparent'}">
-          <span style="text-align:center;font-size:15px">${i===0?"🥇":i===1?"🥈":i===2?"🥉":i+1}</span>
-          <div style="display:flex;align-items:center;gap:7px">${avHtml(u.nome,26,10)}<span style="font-size:13px;font-weight:${isMe?500:400};color:${isMe?'#1a5c2e':'inherit'}">${u.nome}${isMe?" (você)":""}</span></div>
-          <span style="text-align:right;font-weight:500;font-size:13px">${u.total}</span>
-          <span style="text-align:right;color:#555;font-size:13px">${u.acertos}</span>
-          <span style="text-align:right;color:#555;font-size:13px">${u.exatos}</span>
-        </div>`;
-      }).join("")}
-    </div>`:`
-    <div class="card" style="padding:0;overflow:hidden">
-      <iframe src="https://widget.api-futebol.com.br/render/widget_3011a7e1604bf850"
-        title="Grupos Copa 2026"
-        style="border:none;width:100%;height:800px;display:block;"
-        referrerpolicy="unsafe-url">
-      </iframe>
-    </div>`}`;
+      <div class="card" style="padding:0;overflow:hidden;position:sticky;top:60px">
+        <div style="padding:12px 16px;border-bottom:1px solid #e5e7eb;font-size:14px;font-weight:500">📊 Grupos da Copa</div>
+        <iframe src="https://widget.api-futebol.com.br/render/widget_3011a7e1604bf850"
+          title="Grupos Copa 2026"
+          style="border:none;width:100%;height:750px;display:block;"
+          referrerpolicy="unsafe-url">
+        </iframe>
+      </div>
+    </div>`;
   }
   }
 
